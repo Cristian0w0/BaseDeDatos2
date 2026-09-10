@@ -20,3 +20,9 @@ To apply or verify the schema on a PostgreSQL instance:
 ```bash
 psql -U <user> -d <dbname> -f db/schema.sql
 ```
+
+## Security
+
+- Follow `.kiro/steering/security-policies.md` for all security-related work.
+- Review and validate any database change before execution.
+- Never expose or commit credentials, secrets, or sensitive database information.
