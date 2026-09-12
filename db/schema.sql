@@ -48,6 +48,9 @@ CREATE TABLE producto (
         REFERENCES categoria (id_categoria)
         ON DELETE RESTRICT,
 
+    CONSTRAINT uq_producto_categoria_nombre
+        UNIQUE (categoria_id, nombre),
+
     CONSTRAINT ck_producto_precio_no_negativo
         CHECK (precio >= 0),
 
@@ -118,3 +121,44 @@ CREATE INDEX idx_producto_categoria_activo
 -- asociadas a un producto en consultas de historial de ventas.
 CREATE INDEX idx_detalle_pedido_producto
     ON detalle_pedido (producto_id);
+
+-- ============================================================
+-- 5. Reglas de integridad complejas (Triggers)
+-- ============================================================
+
+-- Función de validación para garantizar que todo pedido posea al menos un detalle
+CREATE OR REPLACE FUNCTION fn_validar_pedido_tiene_detalle()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_TABLE_NAME = 'pedido') THEN
+        IF NOT EXISTS (SELECT 1 FROM detalle_pedido WHERE pedido_id = NEW.id_pedido) THEN
+            RAISE EXCEPTION 'El pedido % debe contener al menos un detalle.', NEW.id_pedido;
+        END IF;
+        RETURN NEW;
+
+    ELSIF (TG_TABLE_NAME = 'detalle_pedido') THEN
+        IF EXISTS (SELECT 1 FROM pedido WHERE id_pedido = OLD.pedido_id) THEN
+            IF NOT EXISTS (SELECT 1 FROM detalle_pedido WHERE pedido_id = OLD.pedido_id) THEN
+                RAISE EXCEPTION 'El pedido % no puede quedarse sin detalles.', OLD.pedido_id;
+            END IF;
+        END IF;
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger posponible al realizar COMMIT tras insertar o actualizar un pedido
+CREATE CONSTRAINT TRIGGER trg_validar_pedido_con_detalle
+    AFTER INSERT OR UPDATE ON pedido
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_validar_pedido_tiene_detalle();
+
+-- Trigger posponible al realizar COMMIT tras eliminar o modificar un detalle
+CREATE CONSTRAINT TRIGGER trg_validar_detalle_minimo
+    AFTER DELETE OR UPDATE ON detalle_pedido
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_validar_pedido_tiene_detalle();
