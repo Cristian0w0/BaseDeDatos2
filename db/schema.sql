@@ -112,6 +112,11 @@ CREATE TABLE detalle_pedido (
 CREATE INDEX idx_pedido_cliente
     ON pedido (cliente_id);
 
+-- Acelera las consultas y filtrados de pedidos por rango de fechas,
+-- por ejemplo: SELECT ... FROM pedido WHERE fecha_pedido >= ?.
+CREATE INDEX idx_pedido_fecha
+    ON pedido (fecha_pedido);
+
 -- Acelera el listado/búsqueda de productos de una categoría,
 -- especialmente al consultar productos vigentes de esa categoría.
 CREATE INDEX idx_producto_categoria_activo

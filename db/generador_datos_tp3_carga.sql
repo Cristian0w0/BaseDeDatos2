@@ -194,7 +194,7 @@ GROUP BY pedido_id, producto_id
 HAVING COUNT(*) > 1;
 
 -- ============================================================================
--- FIN DEL SCRIPT DE PRUEBA
+-- FIN DEL SCRIPT
 -- Para pruebas iniciales, mantener ROLLBACK.
 -- Para confirmar la carga tras validar, cambiar por COMMIT.
 -- ============================================================================
