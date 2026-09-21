@@ -297,3 +297,78 @@ El índice parcial sobre `producto` produjo un cambio más significativo en la c
 También se rechazó una propuesta de índice sobre `producto(id_producto) WHERE activo = TRUE` debido a su baja selectividad, la existencia previa de un índice por la clave primaria y la ausencia de cambios favorables en el plan de ejecución.
 
 Finalmente, la medición de escritura sobre `detalle_pedido` mostró que los índices agregados no introducen un costo directo relevante en dicha operación, dado que se encuentran sobre otras tablas. Las pequeñas diferencias temporales observadas entre ejecuciones no se consideran suficientes para atribuir una mejora o empeoramiento al uso de estos índices.
+
+---
+
+# 8. Parte B — Vistas para los reportes del sistema
+
+Se definieron tres vistas para simplificar consultas habituales del sistema Food Store. Las vistas fueron generadas a partir de una especificación previa realizada en Kiro y luego implementadas con OpenCode.
+
+## 8.1. Vista de productos vigentes
+
+**Vista:** `v_productos_vigentes`
+
+La vista combina `producto` con `categoria` mediante un `INNER JOIN` y filtra únicamente los productos con `activo = TRUE`.
+
+Se comparó el resultado de la vista con la consulta manual equivalente.
+
+* Filas devueltas por la vista: **46667**
+* Filas devueltas por la consulta manual: **46667**
+* `EXCEPT` vista → consulta manual: **0 diferencias**
+* `EXCEPT` consulta manual → vista: **0 diferencias**
+
+Por lo tanto, ambas consultas son equivalentes.
+
+## 8.2. Vista de pedidos con datos del cliente
+
+**Vista:** `v_pedidos_con_cliente`
+
+La vista combina `pedido` con `cliente` mediante un `INNER JOIN` y expone los datos necesarios del pedido junto con nombre, apellido y email del cliente.
+
+Se comparó el resultado de la vista con la consulta manual equivalente.
+
+* Filas devueltas por la vista: **200000**
+* Filas devueltas por la consulta manual: **200000**
+* `EXCEPT` vista → consulta manual: **0 diferencias**
+* `EXCEPT` consulta manual → vista: **0 diferencias**
+
+Por lo tanto, ambas consultas son equivalentes.
+
+### Consideración de seguridad
+
+La vista no expone `id_cliente` ni `created_at`, ya que no son necesarios para este reporte.
+
+El esquema actual de `cliente` fue revisado y no contiene una columna `contraseña`, token ni otro campo de autenticación. Por lo tanto, no existe actualmente una columna de contraseña que pueda ser excluida mediante esta vista. No se modificó el esquema para agregar una credencial inexistente.
+
+La vista expone únicamente los datos del cliente necesarios para el reporte: `nombre`, `apellido` y `email`.
+
+## 8.3. Vista de detalle de pedido con nombre del producto
+
+**Vista:** `v_detalle_pedido_con_producto`
+
+La vista combina `detalle_pedido` con `producto` mediante un `INNER JOIN` y agrega el nombre del producto al detalle de cada pedido.
+
+No se filtra por `producto.activo`, ya que un producto puede haber sido dado de baja posteriormente y el detalle histórico de una venta debe conservarse.
+
+Se comparó el resultado de la vista con la consulta manual equivalente.
+
+* Filas devueltas por la vista: **200000**
+* Filas devueltas por la consulta manual: **200000**
+* `EXCEPT` vista → consulta manual: **0 diferencias**
+* `EXCEPT` consulta manual → vista: **0 diferencias**
+
+Por lo tanto, ambas consultas son equivalentes.
+
+## 8.4. Resultado de la verificación
+
+Las tres vistas fueron verificadas comparando sus resultados con consultas SQL equivalentes escritas manualmente.
+
+En todos los casos se obtuvo la misma cantidad de filas y cero diferencias mediante `EXCEPT` en ambos sentidos.
+
+| Vista                           |  Filas | Diferencias en ambos sentidos |
+| ------------------------------- | -----: | ----------------------------: |
+| `v_productos_vigentes`          |  46667 |                             0 |
+| `v_pedidos_con_cliente`         | 200000 |                             0 |
+| `v_detalle_pedido_con_producto` | 200000 |                             0 |
+
+Las tres vistas se consideran validadas para los reportes especificados.
