@@ -372,3 +372,55 @@ En todos los casos se obtuvo la misma cantidad de filas y cero diferencias media
 | `v_detalle_pedido_con_producto` | 200000 |                             0 |
 
 Las tres vistas se consideran validadas para los reportes especificados.
+
+---
+
+## 9. Parte C — Vista materializada
+
+Se creó la vista materializada `v_resumen_gasto_cliente`, que almacena el gasto total acumulado por cliente a partir de las tablas `cliente`, `pedido` y `detalle_pedido`.
+
+La vista fue creada utilizando `WITH DATA`, por lo que quedó cargada inmediatamente con los datos actuales. Contiene 20000 filas.
+
+Se creó además el índice único:
+
+`idx_v_resumen_gasto_cliente_cliente` sobre `id_cliente`.
+
+El índice único es necesario para permitir el uso de `REFRESH MATERIALIZED VIEW CONCURRENTLY`. Esta operación fue probada correctamente sobre `v_resumen_gasto_cliente`.
+
+### Medición del reporte original
+
+La consulta original del ranking de clientes por gasto fue ejecutada mediante `EXPLAIN (ANALYZE, BUFFERS)`.
+
+- Execution Time: **207.512 ms**.
+- El plan realiza joins entre `cliente`, `pedido` y `detalle_pedido`.
+- Se realizan agregaciones por cliente mediante `HashAggregate`.
+- Se utilizan `Parallel Seq Scan` sobre `pedido` y `detalle_pedido`.
+- Luego se realizan los ordenamientos necesarios para calcular `RANK()` y presentar el resultado.
+- El `HashAggregate` utilizó espacio temporal en disco.
+
+### Medición utilizando la vista materializada
+
+El mismo reporte fue ejecutado utilizando `v_resumen_gasto_cliente` como fuente:
+
+- Execution Time: **20.341 ms**.
+- La consulta lee las 20000 filas ya agregadas de la vista.
+- Luego realiza el ordenamiento y calcula `RANK()`.
+- No necesita repetir los joins ni el cálculo de `SUM(cantidad * precio_unitario)` sobre las tablas originales.
+
+### Comparación
+
+La consulta original tardó **207.512 ms**, mientras que la consulta sobre la vista materializada tardó **20.341 ms**.
+
+La diferencia absoluta fue de **187.171 ms**, lo que representa una reducción aproximada del **90.2%** en el tiempo de ejecución en esta medición.
+
+La mejora se debe a que la vista materializada almacena previamente el resultado costoso del agregado por cliente.
+
+### Frecuencia de refresco
+
+Se propone ejecutar `REFRESH MATERIALIZED VIEW CONCURRENTLY v_resumen_gasto_cliente` **cada una hora**.
+
+La frecuencia se justifica porque se trata de un reporte analítico y no de una operación transaccional que requiera información en tiempo real. Con esta frecuencia, los usuarios podrían consultar información con una antigüedad de hasta aproximadamente una hora.
+
+El costo de esta decisión es que los cambios realizados en pedidos posteriores al último refresh no aparecerán inmediatamente en el reporte materializado. Si se necesitara información más actualizada, podría aumentarse la frecuencia del refresh o consultarse directamente la información de las tablas originales, asumiendo el mayor costo de procesamiento.
+
+El uso de `REFRESH MATERIALIZED VIEW CONCURRENTLY` permite actualizar la vista manteniendo disponible su contenido para las consultas durante el proceso de actualización, y es posible gracias al índice único sobre `id_cliente`.

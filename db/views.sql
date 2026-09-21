@@ -49,3 +49,24 @@ SELECT
     pr.nombre AS nombre_producto
 FROM detalle_pedido dp
 INNER JOIN producto pr ON pr.id_producto = dp.producto_id;
+
+-- ============================================================
+-- 4. Vista materializada de resumen de gasto por cliente
+-- ============================================================
+-- Vista materializada que calcula el gasto total acumulado por cliente
+-- a partir de la información de cliente, pedido y detalle_pedido.
+CREATE MATERIALIZED VIEW v_resumen_gasto_cliente AS
+SELECT
+    c.id_cliente,
+    c.nombre || ' ' || c.apellido AS nombre_completo,
+    SUM(dp.cantidad * dp.precio_unitario) AS gasto_total
+FROM cliente c
+INNER JOIN pedido p ON p.cliente_id = c.id_cliente
+INNER JOIN detalle_pedido dp ON dp.pedido_id = p.id_pedido
+GROUP BY c.id_cliente, c.nombre, c.apellido
+WITH DATA;
+
+-- Índice único sobre id_cliente necesario para permitir refrescar
+-- la vista materializada en forma concurrente (REFRESH MATERIALIZED VIEW CONCURRENTLY).
+CREATE UNIQUE INDEX idx_v_resumen_gasto_cliente_cliente
+    ON v_resumen_gasto_cliente (id_cliente);
