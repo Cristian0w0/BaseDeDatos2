@@ -1,570 +1,208 @@
 # Base de Datos 2 — Food Store
 
-Repositorio de trabajos prácticos de la materia **Base de Datos 2**.
+Repositorio del proyecto integrador **«Food Store»** desarrollado para la asignatura **Base de Datos II**.
 
-Este README documenta específicamente la reproducción de las pruebas realizadas en el **TP5 — Índices y Vistas**, trabajando sobre PostgreSQL.
+El proyecto reúne el trabajo realizado durante los distintos trabajos prácticos de la materia y consolida los contenidos correspondientes a las unidades 1, 2 y 3 en la primera entrega parcial del Trabajo Práctico Integrador (TPI).
 
----
+## Estado del proyecto
 
-## TP5 — Índices, vistas y vista materializada
+Actualmente el repositorio contiene la **primera entrega parcial del TPI**, correspondiente a:
 
-El objetivo del TP5 es analizar el comportamiento de índices sobre consultas frecuentes, evaluar propuestas de indexación, construir vistas para reportes habituales y utilizar una vista materializada para acelerar un reporte agregado costoso.
+1. Integridad, transacciones y concurrencia.
+2. Optimización de consultas.
+3. Índices, vistas y objetos programables del motor.
 
-Las pruebas se realizaron sobre una copia de la base utilizada en TP4:
+La entrega documenta el cumplimiento de los nueve objetivos establecidos por la cátedra y conserva las evidencias de los trabajos prácticos anteriores.
+
+**Rama de trabajo:** `tpi-entrega-parcial`
+**Motor utilizado:** PostgreSQL 17.11
+**Lenguaje de procedimientos:** PL/pgSQL
+
+## Objetivos cubiertos
+
+La primera entrega parcial documenta los siguientes objetivos:
+
+1. Modelo entidad-relación.
+2. Transformación del modelo ER al modelo relacional.
+3. Normalización hasta 3FN/BCNF.
+4. DDL completo con tipos, claves, restricciones e índices.
+5. DML y consultas con JOIN, agregaciones, subconsultas, GROUP BY, HAVING y funciones de ventana.
+6. Vistas, funciones y procedimientos almacenados.
+7. Reglas de negocio mediante CHECK, UNIQUE y triggers.
+8. Transacciones, niveles de aislamiento y concurrencia.
+9. Borrado lógico y su impacto sobre consultas e índices.
+
+## Estructura del repositorio
 
 ```text
-bd2_tp5
-```
-
-La base original de TP4 (`bd2_tp4`) no fue modificada.
-
-Antes de comenzar el TP5 se realizó un respaldo:
-
-```text
-db/backups/bd2_tp4_antes_tp5.dump
-```
-
----
-
-## Estructura relevante
-
-```text
-food-store/
+BaseDeDatos2/
 ├── db/
 │   ├── schema.sql
+│   ├── indices.sql
+│   ├── views.sql
 │   ├── consultas_tp4_parte3.sql
 │   ├── generador_datos_tp3.sql
 │   ├── generador_datos_tp3_carga.sql
-│   ├── indices.sql
-│   ├── views.sql
+│   ├── tpi_parcial1_pruebas.sql
 │   └── backups/
+│
 ├── docs/
-│   └── tp5/
-│       ├── duia.md
-│       └── informe_mediciones.md
+│   ├── tp1/
+│   ├── tp2/
+│   ├── tp3/
+│   ├── tp4/
+│   ├── tp5/
+│   │   └── README.md
+│   └── tpi_parcial1/
+│       └── informe_tpi_parcial1.md
+│
 ├── specs/
-│   ├── indice_pedido_tarjeta_fecha.md
-│   ├── indice_producto_activo_id_rechazado.md
-│   ├── indice_producto_activo_precio.md
-│   ├── vista_detalle_pedido_con_producto.md
-│   ├── vista_materializada_gasto_cliente.md
-│   ├── vista_pedidos_con_cliente.md
-│   └── vista_productos_vigentes.md
+│   └── especificaciones utilizadas durante TP5
+│
 └── README.md
 ```
 
----
+## Base de datos
 
-## Requisitos
-
-* PostgreSQL.
-* DBeaver u otro cliente SQL.
-* Git.
-* Una base de datos `bd2_tp5` preparada a partir de la base utilizada en TP4.
-
-Las consultas de medición utilizan sintaxis específica de PostgreSQL, principalmente:
-
-```sql
-EXPLAIN (ANALYZE, BUFFERS)
-```
-
----
-
-# Reproducción del TP5
-
-## 1. Preparar la base de datos
-
-Las pruebas se realizaron sobre:
+La base de datos utilizada para las pruebas de la primera entrega parcial es:
 
 ```text
-bd2_tp5
+bd2_tpi_parcial1
 ```
 
-La base contiene aproximadamente:
+Se trata de una base de trabajo independiente utilizada para verificar los elementos incorporados al TPI, conservando los resultados correspondientes al TP5.
 
-* `pedido`: 200000 filas.
-* `detalle_pedido`: 200000 filas.
-* `producto`: 50000 filas.
-* `cliente`: 20000 filas.
-* `categoria`: 1 fila.
-
-La preparación de los datos se realizó utilizando los scripts y respaldos correspondientes a los trabajos anteriores.
-
-No se modificó la base original `bd2_tp4`.
-
----
-
-# Parte A — Índices
-
-Los índices aceptados se encuentran en:
+El esquema principal se encuentra en:
 
 ```text
-db/indices.sql
+db/schema.sql
 ```
 
-Los índices finalmente aceptados fueron:
+Este archivo contiene las tablas, tipos, claves, restricciones, triggers, funciones y el procedimiento almacenado `sp_desactivar_producto`.
 
-```sql
-CREATE INDEX idx_pedido_tarjeta_fecha
-    ON pedido (fecha_pedido DESC)
-    WHERE forma_pago = 'TARJETA';
+## Scripts principales
 
-CREATE INDEX idx_producto_activo_precio
-    ON producto (precio DESC)
-    WHERE activo = TRUE;
-```
+### `db/schema.sql`
 
-Antes de ejecutar `db/indices.sql`, las consultas de medición pueden utilizarse para obtener el plan y tiempo de ejecución sin los nuevos índices.
+Contiene el esquema principal de Food Store, incluyendo:
 
-Después de crear los índices, se vuelven a ejecutar las mismas consultas para comparar los planes.
+* tablas y relaciones;
+* claves primarias y foráneas;
+* restricciones `CHECK` y `UNIQUE`;
+* tipo `ENUM` para `forma_pago`;
+* columnas `IDENTITY`;
+* columnas `TIMESTAMPTZ`;
+* triggers y funciones PL/pgSQL;
+* procedimiento `sp_desactivar_producto`.
 
----
+### `db/indices.sql`
 
-## 2. Medición del índice sobre `pedido`
+Contiene los índices adicionales incorporados después del análisis del workload:
 
-Consulta utilizada:
+* `idx_pedido_tarjeta_fecha`;
+* `idx_producto_activo_precio`.
 
-```sql
-EXPLAIN (ANALYZE, BUFFERS)
-SELECT
-    p.id_pedido,
-    p.cliente_id,
-    p.fecha_pedido,
-    p.forma_pago
-FROM pedido p
-WHERE p.fecha_pedido >= TIMESTAMPTZ '2026-01-01'
-  AND p.forma_pago = 'TARJETA'
-ORDER BY p.fecha_pedido DESC;
-```
+### `db/views.sql`
 
-Sin el nuevo índice se obtuvo un `Seq Scan` sobre `pedido` y posteriormente un `Sort`.
+Contiene las vistas convencionales y la vista materializada:
 
-Con:
+* `v_productos_vigentes`;
+* `v_pedidos_con_cliente`;
+* `v_detalle_pedido_con_producto`;
+* `v_resumen_gasto_cliente`.
 
-```sql
-idx_pedido_tarjeta_fecha
-```
+### `db/tpi_parcial1_pruebas.sql`
 
-el plan pasó a utilizar un `Bitmap Index Scan` y un `Bitmap Heap Scan`.
+Contiene pruebas reproducibles correspondientes a la primera entrega parcial, incluyendo:
 
-Para comprobar específicamente el beneficio del índice en una consulta Top-N se puede ejecutar:
+* procedimiento y borrado lógico;
+* reglas de negocio;
+* restricciones de integridad;
+* vistas;
+* índices;
+* transacciones;
+* versión de PostgreSQL;
+* consulta representativa con JOIN, agregación, GROUP BY, HAVING y RANK.
 
-```sql
-EXPLAIN (ANALYZE, BUFFERS)
-SELECT
-    p.id_pedido,
-    p.cliente_id,
-    p.fecha_pedido,
-    p.forma_pago
-FROM pedido p
-WHERE p.fecha_pedido >= TIMESTAMPTZ '2026-01-01'
-  AND p.forma_pago = 'TARJETA'
-ORDER BY p.fecha_pedido DESC
-LIMIT 100;
-```
+## Documentación
 
-En este caso el índice permite realizar un `Index Scan` y evitar el `Sort`.
+La documentación histórica de los trabajos prácticos se conserva organizada por etapa:
 
----
+* `docs/tp1/` — modelo ER, normalización e informe del TP1.
+* `docs/tp2/` — integridad, transacciones y concurrencia.
+* `docs/tp3/` — optimización y análisis de consultas.
+* `docs/tp4/` — consultas, joins, especificaciones y competencia.
+* `docs/tp5/` — índices, vistas, mediciones y reproducción de las pruebas del TP5.
+* `docs/tpi_parcial1/` — informe integrado de la primera entrega parcial.
 
-## 3. Medición del índice sobre `producto`
-
-Consulta utilizada:
-
-```sql
-EXPLAIN (ANALYZE, BUFFERS)
-SELECT
-    p.id_producto,
-    p.nombre,
-    p.precio,
-    p.stock
-FROM producto p
-WHERE p.activo = TRUE
-ORDER BY p.precio DESC
-LIMIT 100;
-```
-
-Sin el índice se obtuvo un `Seq Scan` seguido de un `top-N heapsort`.
-
-Con:
-
-```sql
-idx_producto_activo_precio
-```
-
-el plan pasó a utilizar un `Index Scan`, eliminando el `Sort`.
-
-En la medición realizada, el tiempo pasó aproximadamente de:
+El README específico del TP5 se encuentra en:
 
 ```text
-10.446 ms
+docs/tp5/README.md
 ```
 
-a:
+## Optimización y mediciones
 
-```text
-0.150 ms
-```
+Las principales mejoras verificadas durante TP5 fueron:
 
-La reducción observada fue aproximadamente del:
+| Caso                         |      Antes |   Después |
+| ---------------------------- | ---------: | --------: |
+| Pedidos con `TARJETA`        |  18,877 ms | 17,588 ms |
+| Productos activos por precio |  10,446 ms |  0,150 ms |
+| Resumen de gasto por cliente | 207,512 ms | 20,341 ms |
 
-```text
-98.6 %
-```
+Las mediciones fueron obtenidas mediante `EXPLAIN (ANALYZE, BUFFERS)` y corresponden a ejecuciones concretas sobre la base utilizada durante el desarrollo.
 
----
-
-## 4. Propuesta de índice rechazada
-
-También se evaluó la siguiente propuesta:
-
-```sql
-CREATE INDEX idx_producto_activo_id
-    ON producto (id_producto)
-    WHERE activo = TRUE;
-```
-
-La propuesta fue descartada después de realizar una prueba experimental.
-
-Las principales razones fueron:
-
-* `id_producto` ya es clave primaria y posee un índice.
-* El filtro `activo = TRUE` tiene baja selectividad: aproximadamente el 93.3 % de los productos están activos.
-* La consulta genera un conjunto grande de resultados.
-* El plan continuó utilizando `Hash Join` y recorridos secuenciales.
-* No se observó una mejora suficiente que justificara mantener otro índice.
-
-El índice experimental fue eliminado y no forma parte de `db/indices.sql`.
-
-La especificación y la justificación del rechazo se encuentran en:
-
-```text
-specs/indice_producto_activo_id_rechazado.md
-```
-
----
-
-## 5. Medición de escritura
-
-También se comparó una operación de inserción de varios cientos de filas en `detalle_pedido`, utilizando una transacción con `ROLLBACK` para evitar modificar permanentemente los datos.
-
-El objetivo fue observar si los índices aceptados introducían un costo apreciable en una operación de escritura.
-
-El plan utilizado y las mediciones completas se encuentran en:
+La documentación detallada se encuentra en:
 
 ```text
 docs/tp5/informe_mediciones.md
 ```
 
-La comparación mostró planes equivalentes y no se observó un costo directo apreciable atribuible a los índices aceptados en esta operación.
+## Uso de herramientas de IA
 
----
+Durante el desarrollo se utilizaron herramientas de IA como apoyo para:
 
-# Parte B — Vistas
+* especificación de requisitos;
+* generación de alternativas;
+* implementación de soluciones;
+* revisión técnica;
+* análisis de consultas e índices.
 
-Las vistas se encuentran en:
+Principalmente se utilizaron **Kiro** para la elaboración de especificaciones y **OpenCode** para generar implementaciones a partir de dichas especificaciones.
 
-```text
-db/views.sql
-```
+Las propuestas generadas fueron revisadas y verificadas mediante ejecución controlada en PostgreSQL. Las decisiones de aceptar, modificar o rechazar soluciones se basaron en los requisitos del proyecto y en evidencia reproducible.
 
-Se crearon tres vistas:
+Las declaraciones de uso de IA (DUIA) se conservan en las carpetas correspondientes de `docs/tp2/`, `docs/tp3/`, `docs/tp4/` y `docs/tp5/`.
 
-```text
-v_productos_vigentes
-v_pedidos_con_cliente
-v_detalle_pedido_con_producto
-```
+## Reproducción de las pruebas
 
-## 6. Vista de productos vigentes
-
-La vista:
+Para consultar el procedimiento específico de reproducción de las pruebas del TP5:
 
 ```text
-v_productos_vigentes
+docs/tp5/README.md
 ```
 
-expone los productos activos junto con el nombre de su categoría.
-
-Para verificarla:
-
-```sql
-SELECT COUNT(*)
-FROM v_productos_vigentes;
-```
-
-También se puede comparar con la consulta original mediante `EXCEPT` en ambas direcciones.
-
-El resultado de la verificación realizada fue:
+Para consultar las pruebas correspondientes a la primera entrega parcial:
 
 ```text
-46667 filas
-0 diferencias en ambas direcciones
+db/tpi_parcial1_pruebas.sql
 ```
 
----
-
-## 7. Vista de pedidos con cliente
-
-La vista:
+El informe integrado de la entrega se encuentra en:
 
 ```text
-v_pedidos_con_cliente
+docs/tpi_parcial1/informe_tpi_parcial1.md
 ```
 
-combina los pedidos con los datos necesarios del cliente:
+## Historial del desarrollo
 
-* id del pedido.
-* cliente.
-* fecha.
-* forma de pago.
-* nombre.
-* apellido.
-* email.
+El repositorio conserva el historial de los trabajos prácticos y de la consolidación del TPI mediante Git.
 
-Para verificarla:
-
-```sql
-SELECT COUNT(*)
-FROM v_pedidos_con_cliente;
-```
-
-Resultado de la verificación:
+La rama:
 
 ```text
-200000 filas
-0 diferencias en ambas direcciones
+tpi-entrega-parcial
 ```
 
-El esquema actual de `cliente` no almacena contraseñas ni tokens de autenticación. Por ese motivo, la vista no puede demostrar una exclusión de contraseña que no existe en la tabla base. La vista aplica igualmente el principio de exponer únicamente las columnas necesarias para el reporte.
-
----
-
-## 8. Vista de detalle de pedido con producto
-
-La vista:
-
-```text
-v_detalle_pedido_con_producto
-```
-
-combina las líneas de pedido con el nombre del producto.
-
-Para verificarla:
-
-```sql
-SELECT COUNT(*)
-FROM v_detalle_pedido_con_producto;
-```
-
-Resultado:
-
-```text
-200000 filas
-0 diferencias en ambas direcciones
-```
-
-No se filtran productos inactivos para conservar la información histórica de las ventas.
-
----
-
-# Parte C — Vista materializada
-
-La vista materializada se encuentra también en:
-
-```text
-db/views.sql
-```
-
-Se creó:
-
-```text
-v_resumen_gasto_cliente
-```
-
-Esta vista almacena previamente el gasto total acumulado de cada cliente.
-
-La definición utiliza:
-
-```sql
-WITH DATA
-```
-
-por lo que queda cargada inmediatamente al momento de su creación.
-
-La vista contiene:
-
-```text
-20000 filas
-```
-
-También se creó el índice único:
-
-```text
-idx_v_resumen_gasto_cliente_cliente
-```
-
-sobre:
-
-```text
-id_cliente
-```
-
-Este índice permite utilizar:
-
-```sql
-REFRESH MATERIALIZED VIEW CONCURRENTLY
-```
-
----
-
-## 9. Reproducir la medición del reporte original
-
-El reporte seleccionado corresponde al ranking de clientes por gasto total utilizado en TP4.
-
-Para medirlo:
-
-```sql
-EXPLAIN (ANALYZE, BUFFERS)
-SELECT 
-    c.id_cliente,
-    c.nombre || ' ' || c.apellido AS nombre_completo,
-    SUM(dp.cantidad * dp.precio_unitario) AS gasto_total,
-    RANK() OVER (
-        ORDER BY SUM(dp.cantidad * dp.precio_unitario) DESC
-    ) AS posicion_ranking
-FROM cliente c
-JOIN pedido p
-    ON c.id_cliente = p.cliente_id
-JOIN detalle_pedido dp
-    ON p.id_pedido = dp.pedido_id
-GROUP BY c.id_cliente, c.nombre, c.apellido
-ORDER BY gasto_total DESC, c.id_cliente ASC;
-```
-
-En la medición realizada:
-
-```text
-Execution Time: 207.512 ms
-```
-
----
-
-## 10. Reproducir la medición utilizando la vista materializada
-
-Ejecutar:
-
-```sql
-EXPLAIN (ANALYZE, BUFFERS)
-SELECT
-    id_cliente,
-    nombre_completo,
-    gasto_total,
-    RANK() OVER (
-        ORDER BY gasto_total DESC
-    ) AS posicion_ranking
-FROM v_resumen_gasto_cliente
-ORDER BY gasto_total DESC, id_cliente ASC;
-```
-
-En la medición realizada:
-
-```text
-Execution Time: 20.341 ms
-```
-
-La reducción observada fue aproximadamente del:
-
-```text
-90.2 %
-```
-
-La diferencia absoluta fue de aproximadamente:
-
-```text
-187.171 ms
-```
-
-La mejora se debe a que la vista materializada ya contiene el resultado agregado por cliente y la consulta no necesita repetir los `JOIN` ni calcular nuevamente el `SUM`.
-
----
-
-## 11. Refrescar la vista materializada
-
-Para actualizar la información almacenada:
-
-```sql
-REFRESH MATERIALIZED VIEW CONCURRENTLY v_resumen_gasto_cliente;
-```
-
-Esta operación fue probada correctamente.
-
-El uso de `CONCURRENTLY` permite que el contenido de la vista continúe disponible para consultas durante el proceso de actualización y requiere un índice único apropiado.
-
-El refresh propuesto para este reporte es de aproximadamente:
-
-```text
-una vez por hora
-```
-
-Por tratarse de un reporte analítico, se acepta que los datos puedan tener una antigüedad de hasta aproximadamente una hora.
-
-Si se necesitara información en tiempo real, sería necesario aumentar la frecuencia de actualización o consultar directamente las tablas originales.
-
----
-
-# Documentación y resultados
-
-Las mediciones completas de `EXPLAIN (ANALYZE, BUFFERS)`, la comparación de planes y las pruebas de lectura y escritura se encuentran en:
-
-```text
-docs/tp5/informe_mediciones.md
-```
-
-Las especificaciones utilizadas para índices, vistas y vista materializada se encuentran en:
-
-```text
-specs/
-```
-
-La bitácora de uso de Kiro y OpenCode, incluyendo propuestas aceptadas y rechazadas y las decisiones técnicas tomadas, se encuentra en:
-
-```text
-docs/tp5/duia.md
-```
-
----
-
-# Flujo de trabajo con IA
-
-El TP5 siguió el flujo establecido por la consigna:
-
-1. Se especificó cada necesidad mediante un spec preciso.
-2. Se utilizaron las especificaciones para generar las implementaciones SQL.
-3. Las propuestas fueron revisadas antes de ejecutarse.
-4. Las consultas y cambios se probaron sobre `bd2_tp5`.
-5. Se analizaron los planes mediante `EXPLAIN (ANALYZE, BUFFERS)`.
-6. Las propuestas fueron aceptadas, modificadas o rechazadas según los resultados obtenidos.
-7. Los cambios fueron registrados mediante commits Git.
-
-La decisión final sobre los cambios realizados no fue delegada a la IA.
-
----
-
-# Historial Git
-
-El historial de commits forma parte de la entrega y documenta la evolución del TP5.
-
-Para consultar los commits:
-
-```powershell
-git log --oneline --decorate
-```
-
-Para consultar los cambios de un commit:
-
-```powershell
-git show <commit>
-```
-
-El repositorio mantiene los cambios del TP5 versionados en Git para permitir revisar tanto el estado final como el proceso de desarrollo.
+contiene la integración de las evidencias de TP1 junto con los resultados y documentación desarrollados hasta TP5.
