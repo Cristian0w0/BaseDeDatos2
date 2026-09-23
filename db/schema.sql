@@ -167,3 +167,27 @@ CREATE CONSTRAINT TRIGGER trg_validar_detalle_minimo
     DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW
     EXECUTE FUNCTION fn_validar_pedido_tiene_detalle();
+
+-- ============================================================
+-- 6. Procedimientos almacenados
+-- ============================================================
+
+-- Borrado lógico de un producto.
+-- El registro se conserva para mantener el historial de pedidos.
+CREATE OR REPLACE PROCEDURE sp_desactivar_producto(p_id_producto BIGINT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM producto
+        WHERE id_producto = p_id_producto
+    ) THEN
+        RAISE EXCEPTION 'El producto % no existe.', p_id_producto;
+    END IF;
+
+    UPDATE producto
+    SET activo = FALSE
+    WHERE id_producto = p_id_producto;
+END;
+$$;
