@@ -13,6 +13,16 @@ La IA se utilizó como herramienta de asistencia técnica. Las propuestas genera
 
 Las decisiones finales sobre qué propuestas aceptar, modificar o descartar fueron tomadas por el estudiante.
 
+## Flujo de uso de las herramientas
+
+El flujo de trabajo utilizado fue:
+
+1. **Kiro:** elaboración de especificaciones precisas para cada índice, vista y vista materializada.
+2. **OpenCode:** generación de las implementaciones SQL a partir de las especificaciones correspondientes.
+3. **Estudiante:** lectura y revisión de las propuestas generadas, ejecución controlada en `bd2_tp5`, análisis de resultados y planes de ejecución, y decisión final sobre aceptar, modificar o rechazar cada propuesta.
+
+Las especificaciones utilizadas durante el trabajo se conservaron en la carpeta `specs/` del repositorio.
+
 ---
 
 # Parte A — Índices
@@ -32,7 +42,11 @@ Se buscó optimizar una consulta frecuente sobre `pedido` que:
 * ordena por `fecha_pedido DESC`;
 * trabaja sobre una tabla de 200000 filas.
 
-El prompt original no se conserva literalmente, por lo que la especificación documentada en `specs/indice_pedido_tarjeta_fecha.md` se considera la referencia utilizada para la generación.
+### Spec utilizado
+
+`specs/indice_pedido_tarjeta_fecha.md`
+
+Este spec contiene el workload, la consulta objetivo, la definición DDL y los criterios de verificación utilizados para especificar y evaluar la propuesta.
 
 ### Propuesta de IA
 
@@ -107,7 +121,11 @@ Se buscó optimizar una consulta que:
 * utiliza `LIMIT 100`;
 * trabaja sobre una tabla de 50000 productos.
 
-El prompt original no se conserva literalmente, por lo que la especificación documentada en `specs/indice_producto_activo_precio.md` se considera la referencia utilizada.
+### Spec utilizado
+
+`specs/indice_producto_activo_precio.md`
+
+Este spec contiene el workload, la consulta objetivo, la definición DDL y los criterios de verificación utilizados para especificar y evaluar la propuesta.
 
 ### Propuesta de IA
 
@@ -164,6 +182,12 @@ La reducción medida fue de aproximadamente **98.6 %**.
 ### Herramienta utilizada
 
 **Kiro**, para analizar una consulta que une `detalle_pedido` con `producto` y filtra por productos activos.
+
+### Spec utilizado
+
+`specs/indice_producto_activo_id_rechazado.md`
+
+Este spec documenta la propuesta, el workload, los criterios de aceptación, las mediciones realizadas y la decisión final de rechazo.
 
 ### Consulta analizada
 
@@ -251,6 +275,12 @@ Por lo tanto, la diferencia observada se considera variabilidad de ejecución y 
 
 **Kiro**, para especificar una vista que represente el reporte de productos vigentes.
 
+### Spec utilizado
+
+`specs/vista_productos_vigentes.md`
+
+Este spec contiene los requerimientos, columnas a exponer, DDL y criterios de validación utilizados para la propuesta.
+
 ### Propuesta
 
 La vista debía:
@@ -302,6 +332,12 @@ Por lo tanto, se verificó equivalencia de resultados para el conjunto de datos 
 
 **Kiro**, para especificar una vista que combine pedidos con los datos necesarios del cliente.
 
+### Spec utilizado
+
+`specs/vista_pedidos_con_cliente.md`
+
+Este spec contiene los requerimientos, columnas a exponer, DDL y criterios de validación utilizados para la propuesta.
+
 ### Propuesta
 
 La vista utiliza una lista explícita de columnas:
@@ -352,6 +388,12 @@ Resultado de las comparaciones mediante `EXCEPT`:
 
 **Kiro**, para especificar una vista que relacione las líneas de pedido con los productos.
 
+### Spec utilizado
+
+`specs/vista_detalle_pedido_con_producto.md`
+
+Este spec contiene los requerimientos, columnas a exponer, DDL y criterios de validación utilizados para la propuesta.
+
 ### Propuesta
 
 ```sql
@@ -393,6 +435,12 @@ Las tres vistas fueron verificadas mediante comparación bidireccional con `EXCE
 ### Herramienta utilizada
 
 **Kiro**, para especificar una vista materializada destinada a un reporte agregado costoso.
+
+### Spec utilizado
+
+`specs/vista_materializada_gasto_cliente.md`
+
+Este spec contiene el objetivo del reporte, las columnas requeridas, la definición de la vista materializada, el índice único y los criterios de verificación y rendimiento.
 
 ### Reporte seleccionado
 
