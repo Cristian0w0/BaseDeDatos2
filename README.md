@@ -14,8 +14,10 @@ Actualmente el repositorio contiene la **primera entrega parcial del TPI**, corr
 
 La entrega documenta el cumplimiento de los nueve objetivos establecidos por la cátedra y conserva las evidencias de los trabajos prácticos anteriores.
 
-**Rama de trabajo:** `tpi-entrega-parcial`
+**Rama de trabajo:** `tpi-parcial1`
+
 **Motor utilizado:** PostgreSQL 17.11
+
 **Lenguaje de procedimientos:** PL/pgSQL
 
 ## Objetivos cubiertos
@@ -35,7 +37,8 @@ La primera entrega parcial documenta los siguientes objetivos:
 ## Estructura del repositorio
 
 ```text
-BaseDeDatos2/
+Food-Store/
+
 ├── db/
 │   ├── schema.sql
 │   ├── indices.sql
@@ -70,7 +73,7 @@ La base de datos utilizada para las pruebas de la primera entrega parcial es:
 bd2_tpi_parcial1
 ```
 
-Se trata de una base de trabajo independiente utilizada para verificar los elementos incorporados al TPI, conservando los resultados correspondientes al TP5.
+Se trata de una base de trabajo independiente utilizada para verificar los elementos incorporados al TPI, tomando como base el estado alcanzado durante el TP5.
 
 El esquema principal se encuentra en:
 
@@ -175,6 +178,21 @@ Las propuestas generadas fueron revisadas y verificadas mediante ejecución cont
 
 Las declaraciones de uso de IA (DUIA) se conservan en las carpetas correspondientes de `docs/tp2/`, `docs/tp3/`, `docs/tp4/` y `docs/tp5/`.
 
+## Reproducción de la base de datos
+
+La base de datos de la primera entrega parcial puede reconstruirse utilizando los scripts SQL versionados del repositorio, sin depender de los archivos de backup ubicados en `db/backups/`.
+
+Orden de ejecución:
+
+1. `db/schema.sql`
+2. `db/generador_datos_tp3_carga.sql`
+3. `db/indices.sql`
+4. `db/views.sql`
+
+El archivo `db/tpi_parcial1_pruebas.sql` contiene las pruebas de verificación y no forma parte de la construcción de la base.
+
+Los archivos `.dump` de `db/backups/` se mantienen como respaldos locales y no forman parte del control de versiones.
+
 ## Reproducción de las pruebas
 
 Para consultar el procedimiento específico de reproducción de las pruebas del TP5:
@@ -202,7 +220,7 @@ El repositorio conserva el historial de los trabajos prácticos y de la consolid
 La rama:
 
 ```text
-tpi-entrega-parcial
+tpi-parcial1
 ```
 
 contiene la integración de las evidencias de TP1 junto con los resultados y documentación desarrollados hasta TP5.

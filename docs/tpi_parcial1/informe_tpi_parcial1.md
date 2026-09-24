@@ -28,7 +28,7 @@ El desarrollo del proyecto se realizó de manera incremental a través de los di
 
 El esquema actual se encuentra centralizado en `db/schema.sql`, mientras que las consultas, índices, vistas, generadores de datos y pruebas específicas se mantienen en scripts separados. La documentación de los distintos trabajos prácticos se conserva dentro de `docs/`, permitiendo mantener la trazabilidad de las decisiones y resultados obtenidos durante el desarrollo.
 
-Para esta primera entrega parcial se consolidaron estos avances en la rama `tpi-entrega-parcial`, incorporando además las evidencias del TP1, el procedimiento almacenado para el borrado lógico de productos y el script `db/tpi_parcial1_pruebas.sql`, destinado a reproducir las principales verificaciones de la entrega.
+Para esta primera entrega parcial se consolidaron estos avances en la rama `tpi-parcial1`, incorporando además las evidencias del TP1, el procedimiento almacenado para el borrado lógico de productos y el script `db/tpi_parcial1_pruebas.sql`, destinado a reproducir las principales verificaciones de la entrega.
 
 ## 3. Elementos implementados por unidad
 
@@ -146,9 +146,11 @@ El proyecto contiene consultas que utilizan diferentes recursos de SQL, incluyen
 
 Las consultas desarrolladas durante TP3 y TP4 se conservan principalmente en:
 
-* `db/consultas_tp4_parte3.sql`;
-* `db/generador_datos_tp3.sql`;
-* `db/generador_datos_tp3_carga.sql`.
+* `db/consultas_tp4_parte3.sql`.
+
+Además, `db/generador_datos_tp3.sql` y `db/generador_datos_tp3_carga.sql` contienen los scripts utilizados para generar y cargar los datos necesarios para las pruebas y mediciones realizadas durante el proyecto.
+
+Las consultas desarrolladas incluyen diferentes recursos de SQL, entre ellos `JOIN`, funciones de agregación, `GROUP BY`, `HAVING`, subconsultas, CTE y funciones de ventana.
 
 Además, `db/tpi_parcial1_pruebas.sql` contiene una consulta representativa que combina `JOIN`, agregación, `GROUP BY`, `HAVING` y la función de ventana `RANK()`.
 
@@ -214,7 +216,36 @@ El procedimiento, las vistas y el índice se encuentran en `db/schema.sql`, `db/
 
 Las pruebas de esta entrega se realizaron sobre la base de datos `bd2_tpi_parcial1`, utilizando PostgreSQL 17.11 y DBeaver. Se utilizaron consultas SQL, transacciones controladas, sesiones concurrentes y análisis de planes de ejecución según el tipo de funcionalidad evaluada.
 
-### 5.1. Procedimiento almacenado y borrado lógico
+## 5.1. Reproducción de la base de datos
+
+La estructura y el estado de datos necesarios para reproducir la base utilizada en esta entrega se mantienen mediante scripts SQL versionados en el repositorio. Los archivos de backup en formato PostgreSQL (`.dump`) se mantienen fuera del control de versiones y no forman parte del mecanismo de reproducción del proyecto.
+
+Para reconstruir la base desde cero se debe ejecutar el contenido de los scripts en el siguiente orden:
+
+1. `db/schema.sql`
+
+   Crea el tipo `ENUM`, las tablas, claves primarias y foráneas, restricciones de integridad, índices propios del esquema, funciones, triggers y el procedimiento almacenado `sp_desactivar_producto`.
+
+2. `db/generador_datos_tp3_carga.sql`
+
+   Genera y carga los datos utilizados como base de trabajo del proyecto, incluyendo las categorías, clientes, productos, pedidos y detalles necesarios para reproducir el volumen utilizado durante las pruebas de optimización.
+
+3. `db/indices.sql`
+
+   Incorpora los índices adicionales definidos a partir del análisis del workload de TP5:
+
+   * `idx_pedido_tarjeta_fecha`;
+   * `idx_producto_activo_precio`.
+
+4. `db/views.sql`
+
+   Crea las vistas convencionales, la vista materializada y el índice único asociado a la vista materializada.
+
+Una vez finalizada la construcción, `db/tpi_parcial1_pruebas.sql` puede utilizarse para verificar las principales funcionalidades de la primera entrega. Este último archivo no forma parte de la construcción de la base, sino que contiene pruebas de validación, incluyendo casos que intencionalmente deben ser rechazados por las restricciones de integridad.
+
+De esta manera, la base puede reproducirse utilizando únicamente los scripts SQL versionados en el repositorio, sin depender de archivos de backup que no forman parte del control de versiones.
+
+### 5.2. Procedimiento almacenado y borrado lógico
 
 Se probó el procedimiento `sp_desactivar_producto` dentro de una transacción.
 
@@ -224,19 +255,19 @@ A continuación, la consulta sobre `v_productos_vigentes` dejó de devolver el p
 
 El resultado permitió verificar tanto el funcionamiento del procedimiento como el efecto del borrado lógico sobre las consultas.
 
-### 5.2. Regla de negocio sobre los pedidos
+### 5.3. Regla de negocio sobre los pedidos
 
 Se verificó el trigger `trg_validar_pedido_con_detalle`, configurado como `DEFERRABLE INITIALLY DEFERRED`.
 
 Se inició una transacción y se intentó crear un pedido sin ningún detalle. La inserción fue aceptada inicialmente, pero el `COMMIT` produjo la excepción:
 
-> `El pedido 400001 debe contener al menos un detalle.`
+> `El pedido generado debe contener al menos un detalle.`
 
 La transacción fue posteriormente revertida mediante `ROLLBACK`.
 
 Esto permitió comprobar que la regla de negocio se evalúa al finalizar la transacción, evitando que quede persistido un pedido sin detalles.
 
-### 5.3. Restricciones de integridad
+### 5.4. Restricciones de integridad
 
 Se probaron individualmente diferentes restricciones definidas en el esquema.
 
@@ -251,7 +282,7 @@ Los resultados fueron:
 
 Las cuatro operaciones generaron las correspondientes excepciones de PostgreSQL y no produjeron modificaciones permanentes en la base de datos.
 
-### 5.4. Vistas
+### 5.5. Vistas
 
 Se verificó la existencia y el contenido de las vistas implementadas.
 
@@ -268,7 +299,7 @@ También se verificó la existencia del índice único `idx_v_resumen_gasto_clie
 
 Las vistas convencionales fueron además comparadas con sus consultas equivalentes durante TP5, obteniéndose diferencias de cero registros mediante consultas con `EXCEPT` en ambas direcciones.
 
-### 5.5. Índices
+### 5.6. Índices
 
 Se verificó mediante el catálogo `pg_indexes` la existencia de los índices incorporados durante TP5, entre ellos:
 
@@ -277,7 +308,7 @@ Se verificó mediante el catálogo `pg_indexes` la existencia de los índices in
 
 También se comprobó el inventario completo de índices del esquema público, incluyendo los índices asociados a claves primarias y restricciones `UNIQUE`.
 
-### 5.6. Transacciones
+### 5.7. Transacciones
 
 Se realizó una prueba controlada de `ROLLBACK` sobre el stock de un producto.
 
@@ -285,7 +316,7 @@ Dentro de una transacción, el stock del producto 5 pasó temporalmente de `10` 
 
 Esto permitió verificar que la modificación no confirmada no permanece en la base de datos.
 
-### 5.7. Concurrencia y niveles de aislamiento
+### 5.8. Concurrencia y niveles de aislamiento
 
 Durante TP2 se realizaron pruebas con dos sesiones independientes de PostgreSQL.
 
@@ -295,7 +326,7 @@ También se verificó el comportamiento de bloqueos mediante `SELECT ... FOR UPD
 
 Los resultados completos se encuentran documentados en `docs/tp2/informe_concurrencia.md`.
 
-### 5.8. Consultas del proyecto
+### 5.9. Consultas del proyecto
 
 Se ejecutó una consulta representativa que combina `JOIN`, funciones de agregación, `GROUP BY`, `HAVING` y la función de ventana `RANK()`.
 
@@ -303,7 +334,7 @@ La consulta devolvió 10 registros como resultado del `LIMIT 10`, mostrando corr
 
 Las consultas desarrolladas durante TP3 y TP4 se mantienen en los scripts correspondientes y constituyen la base de las pruebas y análisis realizados durante las etapas posteriores.
 
-### 5.9. Verificación del motor
+### 5.10. Verificación del motor
 
 Se ejecutó `SELECT version()` sobre la base utilizada para la entrega, obteniéndose:
 
