@@ -228,7 +228,7 @@ Para reconstruir la base desde cero se debe ejecutar el contenido de los scripts
 
 2. `db/generador_datos_tp3_carga.sql`
 
-   Genera y carga los datos utilizados como base de trabajo del proyecto, incluyendo las categorías, clientes, productos, pedidos y detalles necesarios para reproducir el volumen utilizado durante las pruebas de optimización.
+   Crea el estado inicial mínimo (1 categoría con `id_categoria = 3`, 1 cliente, 1 producto, 1 pedido y 1 detalle) y luego genera la carga masiva utilizada como base de trabajo del proyecto. El script requiere una base recién creada o exactamente ese estado inicial; aborta si detecta filas adicionales o un estado incompatible y no es reejecutable después de completada la carga. Termina en `COMMIT` y sus aserciones finales abortan la carga si los conteos o las validaciones 4.1–4.8 no se cumplen.
 
 3. `db/indices.sql`
 
@@ -242,6 +242,8 @@ Para reconstruir la base desde cero se debe ejecutar el contenido de los scripts
    Crea las vistas convencionales, la vista materializada y el índice único asociado a la vista materializada.
 
 Una vez finalizada la construcción, `db/tpi_parcial1_pruebas.sql` puede utilizarse para verificar las principales funcionalidades de la primera entrega. Este último archivo no forma parte de la construcción de la base, sino que contiene pruebas de validación, incluyendo casos que intencionalmente deben ser rechazados por las restricciones de integridad.
+
+El archivo `db/generador_datos_tp3.sql` es una variante de prueba en seco que termina en `ROLLBACK`. No debe ejecutarse sobre una base que se quiera conservar: `ROLLBACK` revierte los cambios transaccionales, pero no reinicia las secuencias de identidad, y los triggers diferidos no se validan hasta un `COMMIT`. Por ese motivo, debe usarse únicamente sobre una base descartable.
 
 De esta manera, la base puede reproducirse utilizando únicamente los scripts SQL versionados en el repositorio, sin depender de archivos de backup que no forman parte del control de versiones.
 

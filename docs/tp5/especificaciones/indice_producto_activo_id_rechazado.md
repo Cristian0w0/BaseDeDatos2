@@ -99,4 +99,4 @@ El índice no aporta beneficio en el plan de ejecución ni en los tiempos de res
 
 ## 9. Estado del índice experimental
 
-El índice experimental `idx_producto_activo_id` **fue eliminado** de la base de datos tras las pruebas y no forma parte del archivo `db/indices.sql` ni del esquema definitivo.
+El índice experimental `idx_producto_activo_id` **fue eliminado** de la base de datos tras las pruebas y no forma parte del archivo `../../../db/indices.sql` ni del esquema definitivo.
