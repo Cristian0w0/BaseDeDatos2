@@ -7,17 +7,18 @@ El repositorio reúne y documenta el avance progresivo de los trabajos práctico
 2. **TP6 (Unidad 4):** Forma Normal de Boyce-Codd (FNBC) y Desnormalización Controlada mediante vistas materializadas.
 3. **TP7 (Unidad 5):** Administración y Seguridad de Food Store: roles, auditoría, incidentes y protección de datos personales.
 4. **TP8 (Unidad 6):** Mantenimiento, Respaldo y Recuperación ante desastres (Disaster Recovery) de Food Store.
+5. **TP9 (Unidad 7):** NoSQL y nuevas formas de almacenamiento: modelado documental, migración y contrastación PostgreSQL vs. MongoDB.
 
 ---
 
 ## Estado del proyecto
 
-El estado actual del repositorio incorpora el **TP8 — Unidad 6: Mantenimiento, Respaldo y Recuperación de Food Store**, integrando un procedimiento integral de respaldo automatizado en formato custom (`-Fc`), monitoreo preventivo de salud del cluster, mantenimiento seguro no bloqueante y simulacro cronometrado de recuperación ante desastres contra reloj (medición de RTO y RPO).
+El estado actual del repositorio incorpora el **TP9 — Unidad 7: NoSQL y nuevas formas de almacenamiento (MongoDB y Food Store)**, implementando la representación documental del subconjunto transaccional de pedidos y líneas de detalle, la contrastación verificable de consultas entre ambos motores, y la evaluación crítica de recomendaciones de arquitectura generadas por Inteligencia Artificial.
 
-- **Rama activa de trabajo:** `tp8-mantenimiento`
-- **Motor utilizado:** PostgreSQL 16+ (PostgreSQL 17.11)
-- **Lenguaje de procedimientos y scripts:** PL/pgSQL, PowerShell (.ps1) y Bash (.sh)
-- **Bases de datos involucradas:** `foodstore` (producción/origen) y `foodstore_restore_test` (descartable de prueba)
+- **Rama activa de trabajo:** `tp9-nosql`
+- **Motores utilizados:** PostgreSQL 17.11 (OLTP Relacional) y MongoDB 9.0.4 (Documental NoSQL)
+- **Shells e interfaces de comando:** `mongosh` (2.x), `psql`, PowerShell (.ps1) y Bash (.sh)
+- **Bases de datos involucradas:** `foodstore` (PostgreSQL relacional) y `foodstore_nosql` (MongoDB documental)
 
 ---
 
@@ -25,7 +26,7 @@ El estado actual del repositorio incorpora el **TP8 — Unidad 6: Mantenimiento,
 
 ### 1. TPI del primer parcial (Unidades 1, 2 y 3)
 Consolida el diseño relacional, transacciones ACID, concurrencia, optimización de consultas con `EXPLAIN ANALYZE`, índices B-Tree/parciales, vistas y el borrado lógico mediante `sp_desactivar_producto`.
-- Documentación e informe: `docs/tpi_parcial1/README.md` y `docs/tpi_parcial1/informe_tpi_parcial1.md`.
+- Documentación e informe: `docs/tpi_parcial1/README.md` e `docs/tpi_parcial1/informe_tpi_parcial1.md`.
 - Pruebas reproducibles: `db/tpi_parcial1_pruebas.sql`.
 
 ### 2. TP6 (Unidad 4: FNBC y Desnormalización Controlada)
@@ -40,11 +41,17 @@ Implementa la arquitectura de identidades bajo mínimo privilegio, auditoría na
 
 ### 4. TP8 (Unidad 6: Mantenimiento, Respaldo y Recuperación)
 Desarrolla el plan operativo de continuidad, resiliencia y diagnóstico de salud para Food Store:
-* **Parte 1 — Especificación y Plan (`SPEC_U6.md`):** Matriz de tareas automatizables (frecuencias, ventanas operativas, evidencias y condiciones de éxito) y reglas de seguridad (aislamiento de producción, no exposición de credenciales y uso obligatorio de formato custom).
-* **Parte 2 — Respaldo Automatizable (`backup_foodstore.ps1` / `.sh`):** Exportación lógica en formato custom (`-Fc`), timestamping cronológico (`YYYYMMDD_HHMMSS`), compresión zlib integrada, registro en `logs/` y salida estricta con código de error.
-* **Parte 3 — Monitoreo y Mantenimiento (`health_check.sql` y `maintenance.sql`):** 4 dimensiones de salud (espacio de BD y objetos, conexiones y ratio de rollback, tuplas muertas/autovacuum y consultas de larga duración) y mantenimiento justificado mediante `VACUUM (VERBOSE, ANALYZE)` no bloqueante, fundamentando la prohibición taxativa de `VACUUM FULL`.
-* **Parte 4 — Simulacro de Desastre Contra Reloj (`restore_test.ps1` / `.sh`):** Recreación limpia de la base aislada `foodstore_restore_test`, ejecución de `pg_restore --no-owner --no-privileges`, validaciones de integridad referencial y de dominio (0 productos y detalles inválidos) y cronometraje de RTO y RPO.
-* **Parte 5 — Informe Post-Incidente (`informe_u6.md` / `informe_u6.pdf`):** Reporte ejecutivo de 1 página con métricas observadas, análisis de SLA, resolución de problemas reales, propuesta de mejora (restauración paralela `-j`) y verificación humana del código asistido por OpenCode.
+- Respaldo automatizado custom (`-Fc`) con timestamping (`backup_foodstore.ps1` / `.sh`).
+- Monitoreo en 4 dimensiones (`health_check.sql`) y mantenimiento seguro no bloqueante (`maintenance.sql`).
+- Simulacro cronometrado de recuperación ante desastres en entorno aislado midiendo RTO y RPO (`restore_test.ps1` / `.sh`).
+- Documentación e informe de 1 página: `docs/tp8/README.md`, `docs/tp8/informe_u6.md` y `docs/tp8/informe_u6.pdf`.
+
+### 5. TP9 (Unidad 7: NoSQL y Nuevas Formas de Almacenamiento)
+Implementa el paradigma orientado a documentos sobre la base de pedidos de Food Store:
+* **Parte 1 — Modelo Documental y Migración:** Análisis de tablas y claves de PostgreSQL (`pedido`, `detalle_pedido`, `cliente`, `producto`), diseño desnormalizado BSON (*Aggregate Root*) en la colección `pedidos` (base `foodstore_nosql`), migración con `insertMany()` y fundamentación de las reglas de integridad y ventajas de embeber líneas y clientes.
+* **Parte 2 — Consultas y Verificación Cruzada:** Ejecución de 4 consultas en MongoDB Shell (`mongosh`) con filtros directos y sobre arreglos internos, formulación de sentencias análogas en PostgreSQL (`consultas_postgresql.sql`) y tabla comparativa demostrando 100% de coincidencia en cantidad e identificadores (`[1, 3, 4]`).
+* **Parte 3 — Evaluación de IA y Conclusión Técnica:** Contraste crítico de afirmaciones de asistentes de IA sobre atomicidad a nivel de documento único y costo de uniones relacionales vs. denormalización, junto a una conclusión técnica de 177 palabras que fundamenta la conveniencia de una arquitectura híbrida/políglota.
+* **Entregables:** `docs/tp9/informe_tp9.md`, `docs/tp9/informe_tp9.pdf` (5 páginas exactas), `docs/tp9/consultas_mongodb.js` y `docs/tp9/consultas_postgresql.sql`.
 
 ---
 
@@ -74,21 +81,27 @@ Food-Store/
 │   ├── tp1/ a tp6/                          # Documentación histórica
 │   ├── tp7/                                 # TP7: Entregables formales de Unidad 5
 │   ├── tp8/                                 # TP8: Entregables formales de Unidad 6
+│   │   ├── README.md                        # Documentación consolidada de TP8
 │   │   ├── SPEC_U6.md                       # Especificación del plan y reglas operativas
-│   │   ├── backup_foodstore.ps1             # Script de respaldo automatizado (PowerShell)
-│   │   ├── backup_foodstore.sh              # Script de respaldo automatizado (Bash)
-│   │   ├── health_check.sql                 # Consultas de monitoreo de 4 dimensiones
+│   │   ├── backup_foodstore.ps1 / .sh       # Script de respaldo automatizado
+│   │   ├── health_check.sql                 # Monitoreo preventivo de 4 dimensiones
 │   │   ├── maintenance.sql                  # Mantenimiento justificado no bloqueante
-│   │   ├── restore_test.ps1                 # Automatización del simulacro de recuperación
-│   │   ├── restore_test.sh                  # Simulacro de recuperación (Bash)
-│   │   ├── informe_u6.md                    # Informe post-incidente y RTO/RPO
-│   │   ├── informe_u6.pdf                   # Informe ejecutivo en formato PDF (1 página)
-│   │   ├── TPUnidad_6_Mantenimiento_...md   # Consigna del Trabajo Práctico Unidad 6
-│   │   └── TPUnidad_6_Mantenimiento_...pdf  # Consigna original en PDF
+│   │   ├── restore_test.ps1 / .sh           # Simulacro de recuperación y RTO/RPO
+│   │   └── informe_u6.md / .pdf             # Informe post-incidente
+│   │
+│   ├── tp9/                                 # TP9: Entregables formales de Unidad 7 (NoSQL)
+│   │   ├── BDII_Unidad7_TP_FoodStore_NoSQL.md # Consigna del TP Unidad 7
+│   │   ├── BDII_Unidad7_TP_FoodStore_NoSQL.pdf # Consigna original en PDF
+│   │   ├── consultas_mongodb.js             # Script ejecutable de inicialización y consultas
+│   │   ├── consultas_postgresql.sql         # Consultas SQL equivalentes de comparación
+│   │   ├── informe_tp9.md                   # Informe exhaustivo en formato Markdown
+│   │   ├── informe_tp9.html                 # Maquetado HTML optimizado para exportación
+│   │   └── informe_tp9.pdf                  # Informe oficial de entrega (5 páginas exactas)
+│   │
 │   └── tpi_parcial1/                        # Consolidación del primer parcial
 │
-├── BITACORA.md                              # Bitácora obligatoria de interacción y lectura crítica con IA
-└── README.md                                # Documentación general del repositorio
+├── BITACORA.md                              # Bitácora de interacción y lectura crítica con IA
+└── README.md                                # Documentación general del repositorio (Estado TP9)
 ```
 
 ---
@@ -98,170 +111,38 @@ Food-Store/
 1. **`bd2_tpi_parcial1`:** Base consolidada del primer parcial (Unidades 1 a 3).
 2. **`bd2_tp6`:** Base descartable utilizada para las pruebas de FNBC y desnormalización de la Unidad 4.
 3. **`bd2_tp7`:** Base de desarrollo dedicada para la Unidad 5 (Administración y Seguridad).
-4. **`foodstore`:** Base principal de producción para el ciclo de vida, respaldos y monitoreo del TP8.
-5. **`foodstore_restore_test`:** Base descartable y aislada para los simulacros de recuperación y medición de RTO/RPO del TP8.
+4. **`foodstore`:** Base principal de producción PostgreSQL para el ciclo de vida, respaldos, monitoreo y comparación SQL.
+5. **`foodstore_restore_test`:** Base descartable para los simulacros de recuperación y medición de RTO/RPO del TP8.
+6. **`foodstore_nosql`:** Base documental en MongoDB para el modelado de pedidos embebidos y consultas del TP9.
 
 ---
 
-## Procedimiento Integral para Recrear la Base de Datos (`foodstore`)
+## Procedimiento de Reproducción y Verificación del TP9 (Unidad 7)
 
-Para garantizar que el entorno incorpore **la totalidad de las funcionalidades y esquemas acumulados desde la Unidad 1 hasta la Unidad 6 (TP8)**, la base de datos `foodstore` puede reconstruirse de forma íntegra e idéntica mediante dos alternativas:
+Para reproducir y validar el laboratorio NoSQL de forma automatizada:
 
-### Alternativa A: Ejecución Automatizada (Recomendada)
-
-Se dispone de scripts ejecutores que aplican automáticamente la secuencia completa de DDL, datos, optimizaciones, seguridad y mantenimiento:
-
+### 1. Inicialización y Consultas en MongoDB (`mongosh`)
+Ejecuta la limpieza idempotente, inserción masiva (`insertMany`) de los 5 pedidos de muestra y las 4 consultas operativas:
 ```powershell
-# En PowerShell (Windows)
-.\recrear_base_foodstore.ps1 -Database foodstore
-
-# O en Bash (Linux / macOS)
-./recrear_base_foodstore.sh foodstore
+mongosh --quiet --file docs/tp9/consultas_mongodb.js
 ```
+*Salida esperada:* Conteo de 5 documentos insertados y salida JSON formateada para cada una de las 4 consultas (proyección total, filtro de estado `ENTREGADO`, búsqueda de producto `Hamburguesa Clásica` en arreglo interno y filtro por total > $10.000).
+
+### 2. Consultas Equivalentes en PostgreSQL (`psql`)
+Ejecuta las consultas relacionales equivalentes sobre la base `foodstore`:
+```powershell
+psql -U postgres -d foodstore -f docs/tp9/consultas_postgresql.sql
+```
+*Salida esperada:* Recuperación de los registros coincidentes confirmando que los pedidos devueltos en PostgreSQL son exactamente `[1, 3, 4]`, verificando la correspondencia biunívoca con MongoDB.
 
 ---
 
-### Alternativa B: Recreación Manual Paso a Paso
+## Decisiones Técnicas y de Diseño NoSQL Consolidadas
 
-Si se prefiere ejecutar la reconstrucción instrucción por instrucción con la herramienta nativa `psql`:
-
-#### Paso 1: Creación limpia del contenedor de base de datos
-```powershell
-# Desconectar sesiones abiertas y recrear la base de datos
-psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'foodstore' AND pid <> pg_backend_pid();"
-psql -U postgres -c "DROP DATABASE IF EXISTS foodstore;"
-psql -U postgres -c "CREATE DATABASE foodstore;"
-```
-
-#### Paso 2: Esquema DDL base y dominios (Unidades 1 y 2)
-Crea los tipos enumerados (`forma_pago`), tablas maestras (`categoria`, `cliente`, `producto`, `pedido`, `detalle_pedido`), claves primarias con identidad y restricciones de integridad:
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/schema.sql
-```
-
-#### Paso 3: Índices de optimización relacional (Unidad 3)
-Aplica índices B-Tree estándar y parciales sobre claves foráneas y fechas de transacciones:
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/indices.sql
-```
-
-#### Paso 4: Poblado masivo de datos iniciales (Unidad 3)
-Carga el volumen canónico de clientes, categorías, catálogo de productos y pedidos históricos:
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/generador_datos_tp3_carga.sql
-```
-
-#### Paso 5: Vistas del dominio de negocio (Unidad 3)
-Despliega vistas estándar del catálogo y consultas agregadas de pedidos recientes:
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/views.sql
-```
-
-#### Paso 6: Descomposición en Forma Normal de Boyce-Codd - FNBC (Unidad 4 / TP6)
-Aplica la partición sin pérdida preservando dependencias funcionales para `responsable_deposito` y `control_lote`:
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/tp_fnbc_control_lote.sql
-```
-
-#### Paso 7: Desnormalización controlada y vista materializada (Unidad 4 / TP6)
-Crea la vista materializada analítica `mv_ventas_categoria_dia` y la tabla de auditoría de refrescos `log_actualizacion_mv`:
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/tp_desnormalizacion_top_categorias.sql
-```
-
-#### Paso 8: Prerrequisitos de seguridad y tabla de identidades (Unidad 5 / TP7)
-Habilita la extensión criptográfica `pgcrypto`, define la tabla `usuario` con almacenamiento seguro de contraseñas mediante hashing Blowfish (`crypt` / `gen_salt('bf', 8)`), la vista `v_usuarios_publico` y el procedimiento `sp_crear_pedido`:
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/tp7_clase1_prerrequisitos.sql
-```
-
-#### Paso 9: Funciones seguras de autenticación y soporte (Unidad 5 / TP7)
-Implementa `fn_autenticar` (protegida contra inyección SQL con `SECURITY INVOKER`) y `fn_resetear_password` (protegida contra secuestro de esquemas CVE-2018-1058 con `SECURITY DEFINER` y `SET search_path = public, pg_temp`):
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/tp7_clase2_seguridad.sql
-```
-
-#### Paso 10: Despliegue de roles, mínimo privilegio y RLS (Unidad 5 / TP7)
-Define los roles `rol_app_lectura`, `rol_app_escritura`, `rol_soporte`, `rol_reportes`, `app_web` y `admin_datos` (`NOSUPERUSER`), permisos restringidos a nivel de columna y políticas Row-Level Security (`aislacion_clientes_pedido`):
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f sql/roles.sql
-```
-
-#### Paso 11: Dataset sintético determinista anonimizado (Unidad 5 / TP7)
-Construye la entidad `usuario_anon` preservando cardinalidad exacta y distribuciones para consumo seguro por IA y analítica bajo la Ley 25.326:
-```powershell
-psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f sql/usuario_anon.sql
-```
-
----
-
-## Procedimiento de Reproducción y Verificación del TP8 (Unidad 6)
-
-Una vez disponible la base `foodstore`, se ejecutan las cuatro tareas que componen el ciclo de mantenimiento y continuidad operativa:
-
-### 1. Respaldo Lógico Custom Automatizado
-Genera un archivo `.dump` binario comprimido con timestamping estricto y registro de actividad en bitácora de logs (sin contraseñas expuestas):
-```powershell
-# En PowerShell
-.\docs\tp8\backup_foodstore.ps1 -Database foodstore
-
-# O en Bash
-./docs/tp8/backup_foodstore.sh foodstore
-```
-*Evidencia:* Se genera `db/backups/foodstore_YYYYMMDD_HHMMSS.dump` y su bitácora en `docs/tp8/logs/backup_foodstore_YYYYMMDD_HHMMSS.log`.
-
-### 2. Monitoreo Preventivo de Salud del Cluster
-Ejecuta los cuatro controles de diagnóstico (espacio de almacenamiento, actividad y ratio de rollback, estado de tuplas muertas y consultas bloqueadas):
-```powershell
-psql -U postgres -d foodstore -f docs/tp8/health_check.sql
-```
-
-### 3. Mantenimiento Preventivo Seguro (No Bloqueante)
-Verifica la proximidad al umbral de autovacuum y aplica `VACUUM (VERBOSE, ANALYZE)` sobre tablas transaccionales:
-```powershell
-psql -U postgres -d foodstore -f docs/tp8/maintenance.sql
-```
-
-### 4. Simulacro de Desastre Contra Reloj (Medición de RTO y RPO)
-Ejecuta la restauración automatizada sobre un entorno estrictamente aislado (`foodstore_restore_test`), valida las restricciones lógicas y mide los indicadores de continuidad:
-```powershell
-# En PowerShell
-.\docs\tp8\restore_test.ps1 -RestoreDatabase foodstore_restore_test -SourceDatabase foodstore
-
-# O en Bash
-./docs/tp8/restore_test.sh foodstore_restore_test foodstore
-```
-*Evidencia:* Salida con cronómetro de alta precisión (RTO medido en segundos) y antigüedad del respaldo (RPO observado), validando que las tablas conservan cardinalidad exacta y que no existen productos ni detalles inválidos (`0`).
-
----
-
-## Decisiones Técnicas y de Seguridad Consolidadas
-
-### Arquitectura de Seguridad (TP7 — Unidad 5)
-* **Principio de Mínimo Privilegio (NIST SP 800-53):** Ningún rol de aplicación posee facultades administrativas ni permisos destructivos (`REVOKE DELETE, TRUNCATE`).
-* **Separación de Tareas del DBA:** `admin_datos` posee `CREATEDB` y `CREATEROLE` pero es estrictamente `NOSUPERUSER`.
-* **Proyección Restringida por Columna:** `rol_soporte` sólo accede a `(id, nombre, apellido, mail, rol)`, resguardando celular y contraseñas.
-* **Row-Level Security (RLS):** Filtrado transparente a nivel de fila por cliente mediante `aislacion_clientes_pedido`.
-* **Mitigación CVE-2018-1058:** Funciones `SECURITY DEFINER` con fijación explícita de `SET search_path = public, pg_temp`.
-* **Protección de Datos Personales (Ley 25.326):** Anonimización determinista sintética en `usuario_anon` para procesamiento por IA.
-
-### Continuidad Operativa y Resiliencia (TP8 — Unidad 6)
-* **Aislamiento de Entornos:** La base productiva `foodstore` es intocable durante los simulacros; la recuperación se realiza exclusivamente sobre `foodstore_restore_test`.
-* **Uso Exclusivo de Formato Custom (`-Fc`):** Permite compresión zlib, verificación de cabeceras, reordenamiento de objetos y restauración multi-hilo (`-j`).
-* **Veto Absoluto a `VACUUM FULL`:** Se prohibe en mantenimientos rutinarios debido al bloqueo exclusivo (`AccessExclusiveLock`) y caída del servicio que genera, adoptando en su lugar `VACUUM (VERBOSE, ANALYZE)` no bloqueante (`ShareUpdateExclusiveLock`).
-* **Gestión Segura de Secretos:** Los scripts no exponen contraseñas; operan mediante variables del entorno seguro (`PGPASSWORD` efímero) o `.pgpass` (`0600`).
-
----
-
-## Uso de Inteligencia Artificial y Bitácora Obligatoria
-
-En cumplimiento con los requerimientos pedagógicos de la materia, todas las interacciones, propuestas y correcciones críticas aplicadas con herramientas de IA (OpenCode / Asistente) se encuentran documentadas en:
-
-```text
-BITACORA.md
-```
-
-El documento incluye el registro de prompts y validaciones humanas tanto para la **Unidad 5 (10 registros)** como para la **Unidad 6 (4 registros)**, destacando el análisis crítico ante desvíos como la sugerencia de contraseñas hardcodeadas o el intento de ejecutar `VACUUM FULL`.
+* **Patrón Aggregate Root y Desnormalización:** Se modela el pedido como documento único que contiene la cabecera, el snapshot de contacto del cliente y el arreglo de líneas de venta, eliminando operaciones de `$lookup` y permitiendo lecturas atómicas de una sola operación de disco/red (*single-document atomicity*).
+* **Inmutabilidad de Precios Históricos:** Al desnormalizar los productos dentro del arreglo `lineas`, se congelan el `precio_unitario` y el `subtotal` calculados al instante de la venta, garantizando que futuras modificaciones en el catálogo relacional no distorsionen los importes de ventas pasadas.
+* **Navegación de Arreglos vs. Uniones Relacionales:** En MongoDB, filtrar por productos embebidos (`lineas.producto_id`) preserva la cardinalidad de documentos sin duplicaciones; en PostgreSQL, la consulta exige un `JOIN` entre `pedido` y `detalle_pedido` junto a `DISTINCT` o `WHERE EXISTS` para neutralizar la multiplicación cartesiana de filas.
+* **Persistencia Políglota (CQRS):** Se fundamenta la conveniencia de no descartar PostgreSQL, sino combinarlo con MongoDB: mantener PostgreSQL como núcleo transaccional ACID de alta integridad para la compra y control de inventario concurrente, y proyectar asincrónicamente pedidos finalizados a MongoDB para visualización e historial de alta concurrencia.
 
 ---
 
@@ -269,6 +150,7 @@ El documento incluye el registro de prompts y validaciones humanas tanto para la
 
 * **`main`:** Rama troncal de integración de entregas evaluadas.
 * **`tpi-parcial1`:** Primera entrega integradora (Unidades 1 a 3).
-* **`tp6-fnbc-desnormalizacion`:** Unidad 4 (FNBC y desnormalización). Su README histórico se preserva en [`docs/tp6/README.md`](file:///d:/formateo%20win%2011/Estudios%20(Nuevo)/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp6/README.md).
-* **`tp7-administracion-seguridad`:** Unidad 5 (Administración y Seguridad). Su README histórico se preserva en [`docs/tp7/README.md`](file:///d:/formateo%20win%2011/Estudios%20(Nuevo)/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp7/README.md).
-* **`tp8-mantenimiento`:** Unidad 6 (Mantenimiento, Respaldo y Recuperación — Estado Actual).
+* **`tp6-fnbc-desnormalizacion`:** Unidad 4 (FNBC y desnormalización). Preservado en [`docs/tp6/README.md`](docs/tp6/README.md).
+* **`tp7-administracion-seguridad`:** Unidad 5 (Administración y Seguridad). Preservado en [`docs/tp7/README.md`](docs/tp7/README.md).
+* **`tp8-mantenimiento`:** Unidad 6 (Mantenimiento, Respaldo y Recuperación). Preservado en [`docs/tp8/README.md`](docs/tp8/README.md).
+* **`tp9-nosql`:** Unidad 7 (NoSQL y nuevas formas de almacenamiento — Rama Activa de Trabajo).
