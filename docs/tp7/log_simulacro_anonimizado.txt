@@ -1,0 +1,13 @@
+2026-11-02 05:30:01 -03 [19204] app_web@bd2_tp7 LOG:  statement: SELECT * FROM fn_autenticar('user_tok_9912@anon.test', '***'); -> 0 rows returned
+2026-11-02 05:30:03 -03 [19204] app_web@bd2_tp7 LOG:  statement: SELECT * FROM fn_autenticar('user_tok_9912@anon.test', '***'); -> 0 rows returned
+2026-11-02 05:30:05 -03 [19204] app_web@bd2_tp7 LOG:  statement: SELECT * FROM fn_autenticar('user_tok_9912@anon.test', '***'); -> 0 rows returned
+2026-11-02 05:30:08 -03 [19204] app_web@bd2_tp7 LOG:  statement: SELECT * FROM fn_autenticar('user_tok_9912@anon.test', '***'); -> 0 rows returned
+2026-11-02 05:30:10 -03 [19204] app_web@bd2_tp7 LOG:  statement: SELECT * FROM fn_autenticar('user_tok_9912@anon.test', '***'); -> 0 rows returned
+... [340 intentos fallidos adicionales desde origen=198.51.100.42 entre 05:30:12 y 05:35:48] ...
+2026-11-02 05:36:02 -03 [19204] app_web@bd2_tp7 LOG:  statement: SELECT id, rol FROM fn_autenticar('user_tok_9912@anon.test', '***'); -> 1 row returned (id=1, rol=ADMIN)
+2026-11-02 05:36:15 -03 [19204] app_web@bd2_tp7 LOG:  statement: SELECT id, nombre, apellido, mail, celular, rol, eliminado, created_at FROM usuario; -> [3 filas exfiltradas]
+2026-11-02 05:36:28 -03 [19204] app_web@bd2_tp7 ERROR:  permission denied to grant role "admin_datos"
+2026-11-02 05:36:28 -03 [19204] app_web@bd2_tp7 STATEMENT:  GRANT admin_datos TO app_web;
+2026-11-02 05:36:35 -03 [19204] app_web@bd2_tp7 ERROR:  must be superuser to alter superusers
+2026-11-02 05:36:35 -03 [19204] app_web@bd2_tp7 STATEMENT:  ALTER ROLE app_web SUPERUSER;
+2026-11-02 05:36:42 -03 [19204] app_web@bd2_tp7 LOG:  disconnection: session time: 0:06:45.120 user=app_web database=bd2_tp7 host=198.51.100.42 port=54120

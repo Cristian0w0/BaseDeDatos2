@@ -1,0 +1,5 @@
+2026-11-02 05:20:10.114 -03 [14820] app_web@bd2_tp7 LOG:  connection authorized: user=app_web database=bd2_tp7 application_name=psql
+2026-11-02 05:20:11.025 -03 [14820] app_web@bd2_tp7 LOG:  statement: INSERT INTO pedido (cliente_id, fecha_pedido, forma_pago) VALUES (1, now(), 'EFECTIVO'::forma_pago);
+2026-11-02 05:20:12.330 -03 [14820] app_web@bd2_tp7 LOG:  statement: UPDATE producto SET stock = stock + 5 WHERE id_producto = 1;
+2026-11-02 05:20:14.891 -03 [14820] app_web@bd2_tp7 LOG:  statement: SELECT * FROM fn_autenticar('admin@foodstore.com', 'ClaveTotalmenteErronea_12345');
+2026-11-02 05:20:16.402 -03 [14820] app_web@bd2_tp7 LOG:  disconnection: session time: 0:00:06.288 user=app_web database=bd2_tp7 host=127.0.0.1 port=51234
