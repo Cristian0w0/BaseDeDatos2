@@ -6,17 +6,18 @@ El repositorio reúne y documenta el avance progresivo de los trabajos práctico
 1. **Primera entrega parcial del Trabajo Práctico Integrador (TPI):** Consolidación de las Unidades 1, 2 y 3 (integridad, transacciones, optimización, índices, vistas y procedimientos).
 2. **TP6 (Unidad 4):** Forma Normal de Boyce-Codd (FNBC) y Desnormalización Controlada mediante vistas materializadas.
 3. **TP7 (Unidad 5):** Administración y Seguridad de Food Store: roles, auditoría, incidentes y protección de datos personales.
+4. **TP8 (Unidad 6):** Mantenimiento, Respaldo y Recuperación ante desastres (Disaster Recovery) de Food Store.
 
 ---
 
 ## Estado del proyecto
 
-El estado actual del repositorio incorpora el **TP7 — Administración y Seguridad de Food Store**, integrando los contenidos teórico-prácticos de la **Clase 1** (identidades, mínimo privilegio, auditoría) y de la **Clase 2** (amenazas relacionales, inyección SQL, escalamiento, fuga de datos y protección de datos personales bajo la Ley 25.326).
+El estado actual del repositorio incorpora el **TP8 — Unidad 6: Mantenimiento, Respaldo y Recuperación de Food Store**, integrando un procedimiento integral de respaldo automatizado en formato custom (`-Fc`), monitoreo preventivo de salud del cluster, mantenimiento seguro no bloqueante y simulacro cronometrado de recuperación ante desastres contra reloj (medición de RTO y RPO).
 
-- **Rama activa de trabajo:** `tp7-administracion-seguridad`
-- **Motor utilizado:** PostgreSQL 17 (17.11)
-- **Lenguaje de procedimientos:** PL/pgSQL
-- **Base de datos de desarrollo del TP7:** `bd2_tp7`
+- **Rama activa de trabajo:** `tp8-mantenimiento`
+- **Motor utilizado:** PostgreSQL 16+ (PostgreSQL 17.11)
+- **Lenguaje de procedimientos y scripts:** PL/pgSQL, PowerShell (.ps1) y Bash (.sh)
+- **Bases de datos involucradas:** `foodstore` (producción/origen) y `foodstore_restore_test` (descartable de prueba)
 
 ---
 
@@ -34,13 +35,16 @@ Aborda la descomposición sin pérdida preservando dependencias de `control_lote
 
 ### 3. TP7 (Unidad 5: Administración y Seguridad)
 Implementa la arquitectura de identidades bajo mínimo privilegio, auditoría nativa de servidor, laboratorio de simulación de incidentes, protección de datos personales y la bitácora de uso crítico de IA.
+- Documentación e informes: `docs/tp7/` (especificación Kiro, `informe_auditoria.md`, `informe_incidente.md`, `verificacion_roles.md`).
+- Scripts canónicos: `sql/roles.sql`, `sql/auditoria_test.sql`, `sql/simulacro_incidente.sql` y `sql/usuario_anon.sql`.
 
-Se organiza en cinco partes técnicas:
-* **Parte A — Roles y Permisos de Mínimo Privilegio:** Especificación previa Kiro (`requirements.md` y `design.md`), script `roles.sql`, permisos por columna sobre `usuario`, políticas de Row-Level Security (RLS) sobre `pedido`, permisos por defecto (`ALTER DEFAULT PRIVILEGES`) y verificación formal en el catálogo del motor (`\du`, `pg_roles`, `role_table_grants`).
-* **Parte B — Activación y Prueba de la Auditoría:** Activación de parámetros nativos en el servidor (`log_connections = on`, `log_disconnections = on`, `log_statement = 'mod'`), ejecución de secuencia de prueba de 4 operaciones, captura de log y análisis comparativo de alcance frente a `pgaudit`.
-* **Parte C — Laboratorio: Simulacro de Incidente de Acceso Indebido:** Reproducción controlada de ataque de fuerza bruta contra `fn_autenticar`, exfiltración masiva de usuarios e intentos de escalamiento vertical a `admin_datos` y `SUPERUSER`. Verificación de contención por el motor, log anonimizado, contraste de la reconstrucción de la IA con lectura crítica humana y definición del plan de contención.
-* **Parte D — Protección de Datos Personales (Ley 25.326) y Equivalencia:** Creación del dataset sintético determinista `usuario_anon` para consumo por IA, ejecución de consultas analíticas agregadas cruzadas demostrando equivalencia exacta de cardinalidad y fundamentación de la frontera de privacidad.
-* **Parte E — Cierre y Consolidación de Bitácora:** Registro en `BITACORA.md` de prompts, respuestas de IA y validaciones/correcciones humanas aplicadas, destacando el caso de error más significativo de la IA.
+### 4. TP8 (Unidad 6: Mantenimiento, Respaldo y Recuperación)
+Desarrolla el plan operativo de continuidad, resiliencia y diagnóstico de salud para Food Store:
+* **Parte 1 — Especificación y Plan (`SPEC_U6.md`):** Matriz de tareas automatizables (frecuencias, ventanas operativas, evidencias y condiciones de éxito) y reglas de seguridad (aislamiento de producción, no exposición de credenciales y uso obligatorio de formato custom).
+* **Parte 2 — Respaldo Automatizable (`backup_foodstore.ps1` / `.sh`):** Exportación lógica en formato custom (`-Fc`), timestamping cronológico (`YYYYMMDD_HHMMSS`), compresión zlib integrada, registro en `logs/` y salida estricta con código de error.
+* **Parte 3 — Monitoreo y Mantenimiento (`health_check.sql` y `maintenance.sql`):** 4 dimensiones de salud (espacio de BD y objetos, conexiones y ratio de rollback, tuplas muertas/autovacuum y consultas de larga duración) y mantenimiento justificado mediante `VACUUM (VERBOSE, ANALYZE)` no bloqueante, fundamentando la prohibición taxativa de `VACUUM FULL`.
+* **Parte 4 — Simulacro de Desastre Contra Reloj (`restore_test.ps1` / `.sh`):** Recreación limpia de la base aislada `foodstore_restore_test`, ejecución de `pg_restore --no-owner --no-privileges`, validaciones de integridad referencial y de dominio (0 productos y detalles inválidos) y cronometraje de RTO y RPO.
+* **Parte 5 — Informe Post-Incidente (`informe_u6.md` / `informe_u6.pdf`):** Reporte ejecutivo de 1 página con métricas observadas, análisis de SLA, resolución de problemas reales, propuesta de mejora (restauración paralela `-j`) y verificación humana del código asistido por OpenCode.
 
 ---
 
@@ -55,43 +59,32 @@ Food-Store/
 │   ├── generador_datos_tp3_carga.sql        # Poblado masivo de datos
 │   ├── tp_fnbc_control_lote.sql             # TP6: Descomposición FNBC
 │   ├── tp_desnormalizacion_top_categorias.sql # TP6: Vista materializada y auditoría
-│   ├── tp7_clase1_prerrequisitos.sql        # TP7: Extensión pgcrypto, usuario, vistas y sp_crear_pedido
-│   ├── tp7_clase1_auditoria_servidor.sql    # TP7: Comandos de auditoría de servidor
-│   ├── tp7_clase2_seguridad.sql             # TP7: Funciones fn_autenticar, fn_resetear_password y tests
 │   ├── roles.sql                            # TP7: Implementación de roles y permisos
-│   ├── auditoria_test.sql                   # TP7: Secuencia de prueba de auditoría
-│   ├── simulacro_incidente.sql              # TP7: Script de simulación de incidente
-│   ├── usuario_anon.sql                     # TP7: Dataset anonimizado y consultas
 │   └── backups/                             # Respaldos .dump (excluidos en .gitignore)
 │
-├── sql/                                     # Entregables canónicos exigidos por consigna TP7
-│   ├── roles.sql                            # Parte A: Roles, jerarquías, RLS y mínimo privilegio
-│   ├── auditoria_test.sql                   # Parte B: Prueba de auditoría de 4 operaciones
-│   ├── simulacro_incidente.sql              # Parte C: Reproducción de incidente de acceso indebido
-│   └── usuario_anon.sql                     # Parte D: Creación de usuario_anon y agregaciones
+├── sql/                                     # Entregables canónicos SQL
+│   ├── roles.sql                            # TP7: Jerarquías, RLS y mínimo privilegio
+│   ├── auditoria_test.sql                   # TP7: Secuencia de prueba de auditoría
+│   ├── simulacro_incidente.sql              # TP7: Reproducción de ataque de acceso indebido
+│   ├── usuario_anon.sql                     # TP7: Dataset anonimizado
+│   ├── health_check.sql                     # TP8: Monitoreo preventivo del cluster
+│   └── maintenance.sql                      # TP8: Revisión de autovacuum y VACUUM ANALYZE
 │
 ├── docs/                                    # Informes, especificaciones y evidencias
-│   ├── tp1/ a tp4/                          # Informes y modelos ER de entregas iniciales
-│   ├── tp5/                                 # TP5: Informe de mediciones, DUIA y specs históricas
-│   ├── tp6/                                 # TP6: README histórico, informe FNBC y evidencias EXPLAIN
-│   │   ├── README.md                        # README histórico del estado del proyecto al cierre de TP6
-│   │   ├── informe_fnbc.md                  # Informe técnico de FNBC y desnormalización
-│   │   ├── informe_fnbc.pdf                 # Informe en PDF
-│   │   └── evidencias/                      # Capturas de planes de ejecución
+│   ├── tp1/ a tp6/                          # Documentación histórica
 │   ├── tp7/                                 # TP7: Entregables formales de Unidad 5
-│   │   ├── kiro_roles_spec/
-│   │   │   ├── requirements.md              # Requerimientos y justificación de roles (Kiro)
-│   │   │   └── design.md                    # Diseño técnico, diagrama Mermaid y matriz granular
-│   │   ├── verificacion_roles.md            # Salidas de catálogo (\du, grants, columnas)
-│   │   ├── log_auditoria_prueba.txt         # Captura de log ante auditoria_test.sql
-│   │   ├── informe_auditoria.md             # Informe técnico de auditoría nativa vs pgaudit
-│   │   ├── log_simulacro_anonimizado.txt    # Log anonimizado de la simulación de ataque
-│   │   ├── informe_incidente.md             # Reconstrucción IA, lectura crítica y plan de contención
-│   │   ├── verificacion_equivalencia.md     # Resultados lado a lado usuario vs usuario_anon
-│   │   ├── BD2_U5_Clase1_...md              # Apunte teórico Clase 1
-│   │   ├── BD2_U5_Clase2_...md              # Apunte teórico Clase 2
-│   │   ├── BD2_U5_Clase2_...complemento.md  # Apunte complementario con diagrama de tokenización
-│   │   └── Trabajo Practico Unidad 5.md     # Consigna completa del TP7
+│   ├── tp8/                                 # TP8: Entregables formales de Unidad 6
+│   │   ├── SPEC_U6.md                       # Especificación del plan y reglas operativas
+│   │   ├── backup_foodstore.ps1             # Script de respaldo automatizado (PowerShell)
+│   │   ├── backup_foodstore.sh              # Script de respaldo automatizado (Bash)
+│   │   ├── health_check.sql                 # Consultas de monitoreo de 4 dimensiones
+│   │   ├── maintenance.sql                  # Mantenimiento justificado no bloqueante
+│   │   ├── restore_test.ps1                 # Automatización del simulacro de recuperación
+│   │   ├── restore_test.sh                  # Simulacro de recuperación (Bash)
+│   │   ├── informe_u6.md                    # Informe post-incidente y RTO/RPO
+│   │   ├── informe_u6.pdf                   # Informe ejecutivo en formato PDF (1 página)
+│   │   ├── TPUnidad_6_Mantenimiento_...md   # Consigna del Trabajo Práctico Unidad 6
+│   │   └── TPUnidad_6_Mantenimiento_...pdf  # Consigna original en PDF
 │   └── tpi_parcial1/                        # Consolidación del primer parcial
 │
 ├── BITACORA.md                              # Bitácora obligatoria de interacción y lectura crítica con IA
@@ -104,96 +97,178 @@ Food-Store/
 
 1. **`bd2_tpi_parcial1`:** Base consolidada del primer parcial (Unidades 1 a 3).
 2. **`bd2_tp6`:** Base descartable utilizada para las pruebas de FNBC y desnormalización de la Unidad 4.
-3. **`bd2_tp7`:** Base de desarrollo dedicada para la Unidad 5 (Administración y Seguridad). Se crea a partir de una copia limpia de Food Store con datos poblados para ejecutar los permisos, funciones de seguridad y simulacros sin alterar las bases históricas.
+3. **`bd2_tp7`:** Base de desarrollo dedicada para la Unidad 5 (Administración y Seguridad).
+4. **`foodstore`:** Base principal de producción para el ciclo de vida, respaldos y monitoreo del TP8.
+5. **`foodstore_restore_test`:** Base descartable y aislada para los simulacros de recuperación y medición de RTO/RPO del TP8.
 
 ---
 
-## Procedimiento de Reproducción y Verificación del TP7
+## Procedimiento Integral para Recrear la Base de Datos (`foodstore`)
 
-Para reproducir de forma controlada y reproducible los artefactos del TP7 sobre la base `bd2_tp7`:
+Para garantizar que el entorno incorpore **la totalidad de las funcionalidades y esquemas acumulados desde la Unidad 1 hasta la Unidad 6 (TP8)**, la base de datos `foodstore` puede reconstruirse de forma íntegra e idéntica mediante dos alternativas:
 
-### Paso 1: Creación y Preparación de la Base de Trabajo
+### Alternativa A: Ejecución Automatizada (Recomendada)
+
+Se dispone de scripts ejecutores que aplican automáticamente la secuencia completa de DDL, datos, optimizaciones, seguridad y mantenimiento:
+
 ```powershell
-# Crear la base de desarrollo
-psql -U postgres -c "CREATE DATABASE bd2_tp7;"
+# En PowerShell (Windows)
+.\recrear_base_foodstore.ps1 -Database foodstore
 
-# Aplicar esquema base, datos y vistas de Food Store
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f db/schema.sql
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f db/generador_datos_tp3_carga.sql
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f db/views.sql
-
-# Aplicar prerrequisitos de la Unidad 5 (extensión pgcrypto, tabla usuario, vistas y sp_crear_pedido)
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f db/tp7_clase1_prerrequisitos.sql
+# O en Bash (Linux / macOS)
+./recrear_base_foodstore.sh foodstore
 ```
-
-### Paso 2: Despliegue de Roles y Permisos (Parte A)
-```powershell
-# Aplicar el esquema de roles, jerarquías y RLS
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f sql/roles.sql
-```
-*Verificación:* Ejecutar las consultas de catálogo documentadas en `docs/tp7/verificacion_roles.md` para comprobar los atributos de `app_web`, `admin_datos` (`NOSUPERUSER`), las membresías y los permisos restringidos de columna sobre `usuario`.
-
-### Paso 3: Activación y Prueba de Auditoría Nativa (Parte B)
-```powershell
-# Activar parámetros de auditoría en el servidor (requiere privilegios de superusuario)
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f db/tp7_clase1_auditoria_servidor.sql
-
-# Ejecutar la secuencia de 4 operaciones de prueba
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f sql/auditoria_test.sql
-```
-*Verificación:* Comparar el log del servidor generado en el directorio de logs de PostgreSQL contra la captura de referencia en `docs/tp7/log_auditoria_prueba.txt`.
-
-### Paso 4: Despliegue de Funciones de Seguridad y Simulacro de Incidente (Parte C)
-```powershell
-# Crear funciones fn_autenticar y fn_resetear_password
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f db/tp7_clase2_seguridad.sql
-
-# Ejecutar el simulacro de incidente
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f sql/simulacro_incidente.sql
-```
-*Verificación:* Comprobar que los intentos de escalamiento vertical son bloqueados por el motor con `insufficient_privilege` y `must be superuser`, corroborando la contención analizada en `docs/tp7/informe_incidente.md`.
-
-### Paso 5: Generación de Dataset Anonimizado y Verificación de Equivalencia (Parte D)
-```powershell
-# Crear usuario_anon y ejecutar las consultas de agregación analítica
-psql -v ON_ERROR_STOP=1 -U postgres -d bd2_tp7 -f sql/usuario_anon.sql
-```
-*Verificación:* Constatar que las tablas de resultados devueltas por ambas consultas coinciden exactamente en conteos totales y cardinalidad (`COUNT(DISTINCT mail)`), tal como se evidencia en `docs/tp7/verificacion_equivalencia.md`.
 
 ---
 
-## Decisiones Técnicas y de Seguridad del TP7
+### Alternativa B: Recreación Manual Paso a Paso
 
-* **Principio de Mínimo Privilegio (NIST SP 800-53 / Saltzer & Schroeder):** Ningún rol de aplicación posee facultades administrativas. `rol_app_escritura` y `app_web` tienen explícitamente revocado `DELETE` y `TRUNCATE` para asegurar el borrado lógico.
-* **Separación de Tareas:** `admin_datos` posee `CREATEDB` y `CREATEROLE` pero es explícitamente `NOSUPERUSER`, garantizando que sus acciones queden sujetas a las comprobaciones del motor y auditoría.
-* **Proyección Restringida por Columna y Vistas:** Para proteger la confidencialidad de datos personales (Ley 25.326), `rol_soporte` solo tiene concedidas las columnas `(id, nombre, apellido, mail, rol)` de `usuario`, impidiendo que consultas a la tabla base expongan `contrasena` o `celular`.
-* **Row-Level Security (RLS):** Se configuró la directiva `aislacion_clientes_pedido` sobre la tabla `pedido`, forzando al motor a aislar las compras por cliente (`app.usuario_actual`) de forma nativa e independiente del código de backend.
-* **Mitigación de Inyección de SQL:** La función `fn_autenticar` opera con parámetros tipados en PL/pgSQL y `SECURITY INVOKER`, neutralizando ataques de concatenación dinámica como `' OR '1'='1' --`.
-* **Mitigación de Secuestro de Esquemas (CVE-2018-1058):** La función `fn_resetear_password` opera con `SECURITY DEFINER` y fija de forma estricta `SET search_path = public, pg_temp`, revocando la ejecución a `PUBLIC` y concediéndosela únicamente a `rol_soporte`.
-* **Anonimización Determinista:** La tabla `usuario_anon` destruye irreversiblemente el vínculo con personas reales mediante patrones sintéticos (`'Usuario ' || id`, `'usuario' || id || '@ejemplo.test'`), neutraliza el hash de contraseñas y fija celulares en `NULL`, preservando las cardinalidades y distribuciones para consultas de IA y métricas analíticas.
+Si se prefiere ejecutar la reconstrucción instrucción por instrucción con la herramienta nativa `psql`:
+
+#### Paso 1: Creación limpia del contenedor de base de datos
+```powershell
+# Desconectar sesiones abiertas y recrear la base de datos
+psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'foodstore' AND pid <> pg_backend_pid();"
+psql -U postgres -c "DROP DATABASE IF EXISTS foodstore;"
+psql -U postgres -c "CREATE DATABASE foodstore;"
+```
+
+#### Paso 2: Esquema DDL base y dominios (Unidades 1 y 2)
+Crea los tipos enumerados (`forma_pago`), tablas maestras (`categoria`, `cliente`, `producto`, `pedido`, `detalle_pedido`), claves primarias con identidad y restricciones de integridad:
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/schema.sql
+```
+
+#### Paso 3: Índices de optimización relacional (Unidad 3)
+Aplica índices B-Tree estándar y parciales sobre claves foráneas y fechas de transacciones:
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/indices.sql
+```
+
+#### Paso 4: Poblado masivo de datos iniciales (Unidad 3)
+Carga el volumen canónico de clientes, categorías, catálogo de productos y pedidos históricos:
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/generador_datos_tp3_carga.sql
+```
+
+#### Paso 5: Vistas del dominio de negocio (Unidad 3)
+Despliega vistas estándar del catálogo y consultas agregadas de pedidos recientes:
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/views.sql
+```
+
+#### Paso 6: Descomposición en Forma Normal de Boyce-Codd - FNBC (Unidad 4 / TP6)
+Aplica la partición sin pérdida preservando dependencias funcionales para `responsable_deposito` y `control_lote`:
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/tp_fnbc_control_lote.sql
+```
+
+#### Paso 7: Desnormalización controlada y vista materializada (Unidad 4 / TP6)
+Crea la vista materializada analítica `mv_ventas_categoria_dia` y la tabla de auditoría de refrescos `log_actualizacion_mv`:
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/tp_desnormalizacion_top_categorias.sql
+```
+
+#### Paso 8: Prerrequisitos de seguridad y tabla de identidades (Unidad 5 / TP7)
+Habilita la extensión criptográfica `pgcrypto`, define la tabla `usuario` con almacenamiento seguro de contraseñas mediante hashing Blowfish (`crypt` / `gen_salt('bf', 8)`), la vista `v_usuarios_publico` y el procedimiento `sp_crear_pedido`:
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/tp7_clase1_prerrequisitos.sql
+```
+
+#### Paso 9: Funciones seguras de autenticación y soporte (Unidad 5 / TP7)
+Implementa `fn_autenticar` (protegida contra inyección SQL con `SECURITY INVOKER`) y `fn_resetear_password` (protegida contra secuestro de esquemas CVE-2018-1058 con `SECURITY DEFINER` y `SET search_path = public, pg_temp`):
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f db/tp7_clase2_seguridad.sql
+```
+
+#### Paso 10: Despliegue de roles, mínimo privilegio y RLS (Unidad 5 / TP7)
+Define los roles `rol_app_lectura`, `rol_app_escritura`, `rol_soporte`, `rol_reportes`, `app_web` y `admin_datos` (`NOSUPERUSER`), permisos restringidos a nivel de columna y políticas Row-Level Security (`aislacion_clientes_pedido`):
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f sql/roles.sql
+```
+
+#### Paso 11: Dataset sintético determinista anonimizado (Unidad 5 / TP7)
+Construye la entidad `usuario_anon` preservando cardinalidad exacta y distribuciones para consumo seguro por IA y analítica bajo la Ley 25.326:
+```powershell
+psql -v ON_ERROR_STOP=1 -U postgres -d foodstore -f sql/usuario_anon.sql
+```
+
+---
+
+## Procedimiento de Reproducción y Verificación del TP8 (Unidad 6)
+
+Una vez disponible la base `foodstore`, se ejecutan las cuatro tareas que componen el ciclo de mantenimiento y continuidad operativa:
+
+### 1. Respaldo Lógico Custom Automatizado
+Genera un archivo `.dump` binario comprimido con timestamping estricto y registro de actividad en bitácora de logs (sin contraseñas expuestas):
+```powershell
+# En PowerShell
+.\docs\tp8\backup_foodstore.ps1 -Database foodstore
+
+# O en Bash
+./docs/tp8/backup_foodstore.sh foodstore
+```
+*Evidencia:* Se genera `db/backups/foodstore_YYYYMMDD_HHMMSS.dump` y su bitácora en `docs/tp8/logs/backup_foodstore_YYYYMMDD_HHMMSS.log`.
+
+### 2. Monitoreo Preventivo de Salud del Cluster
+Ejecuta los cuatro controles de diagnóstico (espacio de almacenamiento, actividad y ratio de rollback, estado de tuplas muertas y consultas bloqueadas):
+```powershell
+psql -U postgres -d foodstore -f docs/tp8/health_check.sql
+```
+
+### 3. Mantenimiento Preventivo Seguro (No Bloqueante)
+Verifica la proximidad al umbral de autovacuum y aplica `VACUUM (VERBOSE, ANALYZE)` sobre tablas transaccionales:
+```powershell
+psql -U postgres -d foodstore -f docs/tp8/maintenance.sql
+```
+
+### 4. Simulacro de Desastre Contra Reloj (Medición de RTO y RPO)
+Ejecuta la restauración automatizada sobre un entorno estrictamente aislado (`foodstore_restore_test`), valida las restricciones lógicas y mide los indicadores de continuidad:
+```powershell
+# En PowerShell
+.\docs\tp8\restore_test.ps1 -RestoreDatabase foodstore_restore_test -SourceDatabase foodstore
+
+# O en Bash
+./docs/tp8/restore_test.sh foodstore_restore_test foodstore
+```
+*Evidencia:* Salida con cronómetro de alta precisión (RTO medido en segundos) y antigüedad del respaldo (RPO observado), validando que las tablas conservan cardinalidad exacta y que no existen productos ni detalles inválidos (`0`).
+
+---
+
+## Decisiones Técnicas y de Seguridad Consolidadas
+
+### Arquitectura de Seguridad (TP7 — Unidad 5)
+* **Principio de Mínimo Privilegio (NIST SP 800-53):** Ningún rol de aplicación posee facultades administrativas ni permisos destructivos (`REVOKE DELETE, TRUNCATE`).
+* **Separación de Tareas del DBA:** `admin_datos` posee `CREATEDB` y `CREATEROLE` pero es estrictamente `NOSUPERUSER`.
+* **Proyección Restringida por Columna:** `rol_soporte` sólo accede a `(id, nombre, apellido, mail, rol)`, resguardando celular y contraseñas.
+* **Row-Level Security (RLS):** Filtrado transparente a nivel de fila por cliente mediante `aislacion_clientes_pedido`.
+* **Mitigación CVE-2018-1058:** Funciones `SECURITY DEFINER` con fijación explícita de `SET search_path = public, pg_temp`.
+* **Protección de Datos Personales (Ley 25.326):** Anonimización determinista sintética en `usuario_anon` para procesamiento por IA.
+
+### Continuidad Operativa y Resiliencia (TP8 — Unidad 6)
+* **Aislamiento de Entornos:** La base productiva `foodstore` es intocable durante los simulacros; la recuperación se realiza exclusivamente sobre `foodstore_restore_test`.
+* **Uso Exclusivo de Formato Custom (`-Fc`):** Permite compresión zlib, verificación de cabeceras, reordenamiento de objetos y restauración multi-hilo (`-j`).
+* **Veto Absoluto a `VACUUM FULL`:** Se prohibe en mantenimientos rutinarios debido al bloqueo exclusivo (`AccessExclusiveLock`) y caída del servicio que genera, adoptando en su lugar `VACUUM (VERBOSE, ANALYZE)` no bloqueante (`ShareUpdateExclusiveLock`).
+* **Gestión Segura de Secretos:** Los scripts no exponen contraseñas; operan mediante variables del entorno seguro (`PGPASSWORD` efímero) o `.pgpass` (`0600`).
 
 ---
 
 ## Uso de Inteligencia Artificial y Bitácora Obligatoria
 
-En cumplimiento con los requerimientos pedagógicos de la cátedra, todas las interacciones relevantes con asistentes de IA durante la Unidad 5 se encuentran documentadas en el archivo:
+En cumplimiento con los requerimientos pedagógicos de la materia, todas las interacciones, propuestas y correcciones críticas aplicadas con herramientas de IA (OpenCode / Asistente) se encuentran documentadas en:
 
 ```text
 BITACORA.md
 ```
 
-El documento implementa una tabla de tres columnas (*Prompt enviado*, *Respuesta recibida*, *Validación o corrección humana aplicada*) con **10 registros trazables** que cubren desde el punto de partida (Clases 1 y 2) hasta las Partes A, B, C y D. 
-
-Se destaca especialmente el **análisis crítico humano** en casos donde la IA propuso atajos inseguros o deducciones erróneas:
-1. **Propuesta de `GRANT ALL ON ALL TABLES`:** Rechazada por vulnerar el principio de mínimo privilegio.
-2. **Propuesta de concatenación en SQL dinámico:** Corregida por habilitar inyección de SQL.
-3. **Omisión de `search_path` en `SECURITY DEFINER`:** Corregida para prevenir escalamiento por secuestro de esquemas (CVE-2018-1058).
-4. **Falsa inferencia de compromiso total del cluster en el simulacro:** Detectada al contrastar el log del servidor y verificar que los intentos de escalamiento fueron bloqueados por PostgreSQL.
+El documento incluye el registro de prompts y validaciones humanas tanto para la **Unidad 5 (10 registros)** como para la **Unidad 6 (4 registros)**, destacando el análisis crítico ante desvíos como la sugerencia de contraseñas hardcodeadas o el intento de ejecutar `VACUUM FULL`.
 
 ---
 
-## Historial de Ramas en Git
+## Historial de Ramas y Archivo de Documentación
 
-* **`tpi-parcial1`:** Entrega integrada del primer parcial (Unidades 1, 2 y 3).
-* **`tp6-fnbc-desnormalizacion`:** Desarrollo de la Unidad 4 (FNBC y desnormalización con vistas materializadas).
-* **`tp7-administracion-seguridad`:** Desarrollo integral de la Unidad 5 (Administración y Seguridad).
+* **`main`:** Rama troncal de integración de entregas evaluadas.
+* **`tpi-parcial1`:** Primera entrega integradora (Unidades 1 a 3).
+* **`tp6-fnbc-desnormalizacion`:** Unidad 4 (FNBC y desnormalización). Su README histórico se preserva en [`docs/tp6/README.md`](file:///d:/formateo%20win%2011/Estudios%20(Nuevo)/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp6/README.md).
+* **`tp7-administracion-seguridad`:** Unidad 5 (Administración y Seguridad). Su README histórico se preserva en [`docs/tp7/README.md`](file:///d:/formateo%20win%2011/Estudios%20(Nuevo)/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp7/README.md).
+* **`tp8-mantenimiento`:** Unidad 6 (Mantenimiento, Respaldo y Recuperación — Estado Actual).

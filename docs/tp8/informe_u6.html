@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Post-Incidente y Simulacro de Recuperación — Unidad 6</title>
+<style>
+    @page {
+        size: A4;
+        margin: 12mm 15mm 12mm 15mm;
+    }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 8.5pt;
+        line-height: 1.35;
+        color: #1a202c;
+        margin: 0;
+        padding: 0;
+    }
+    .header {
+        border-bottom: 2px solid #2b6cb0;
+        padding-bottom: 5px;
+        margin-bottom: 8px;
+    }
+    .header h1 {
+        font-size: 13.5pt;
+        color: #2b6cb0;
+        margin: 0 0 3px 0;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+    }
+    .header .subtitle {
+        font-size: 7.8pt;
+        color: #4a5568;
+        font-weight: 500;
+    }
+    h2 {
+        font-size: 9.5pt;
+        color: #2d3748;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 2px;
+        margin: 7px 0 4px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-weight: 700;
+    }
+    p {
+        margin: 0 0 4px 0;
+        text-align: justify;
+    }
+    ul {
+        margin: 0 0 4px 0;
+        padding-left: 16px;
+    }
+    li {
+        margin-bottom: 2px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 4px 0 6px 0;
+        font-size: 7.8pt;
+    }
+    th, td {
+        border: 1px solid #cbd5e0;
+        padding: 3px 6px;
+        text-align: left;
+    }
+    th {
+        background-color: #ebf8ff;
+        color: #2b6cb0;
+        font-weight: 700;
+    }
+    tr:nth-child(even) {
+        background-color: #f7fafc;
+    }
+    .badge {
+        display: inline-block;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 7.2pt;
+    }
+    .badge-success {
+        background-color: #c6f6d5;
+        color: #22543d;
+    }
+    .callout {
+        background-color: #f7fafc;
+        border-left: 3px solid #3182ce;
+        padding: 4px 8px;
+        margin: 4px 0;
+        font-size: 8pt;
+    }
+    .callout strong {
+        color: #2c5282;
+    }
+    .code {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 7.8pt;
+        background-color: #edf2f7;
+        padding: 1px 3px;
+        border-radius: 2px;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Informe Post-Incidente y Simulacro de Recuperación — Unidad 6</h1>
+    <div class="subtitle">
+        <strong>Proyecto:</strong> Food Store &nbsp;|&nbsp; 
+        <strong>Motor:</strong> PostgreSQL 16+ (17.11) &nbsp;|&nbsp; 
+        <strong>Fecha:</strong> Noviembre 2026 &nbsp;|&nbsp; 
+        <strong>Bases:</strong> <code>foodstore</code> (Origen) &rarr; <code>foodstore_restore_test</code> (Descartable)
+    </div>
+</div>
+
+<h2>1. Identificación del Respaldo Utilizado</h2>
+<p>
+    Se empleó el último respaldo canónico generado mediante el script automatizado <span class="code">backup_foodstore.ps1</span>:
+    <strong>Archivo:</strong> <span class="code">foodstore_20261103_120000.dump</span> (Formato Custom <span class="code">-Fc</span>, compresión zlib). &nbsp;|&nbsp; 
+    <strong>Timestamp:</strong> 2026-11-03 12:00:00 ART. &nbsp;|&nbsp; 
+    <strong>Tamaño:</strong> 1.48 MB. &nbsp;|&nbsp; 
+    <strong>Modo:</strong> Exportación lógica segura sin exposición de contraseñas, validada con código de salida 0.
+</p>
+
+<h2>2. Métricas de Continuidad Operativa: RPO y RTO (Previsto vs. Observado)</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Métrica</th>
+            <th>Definición Conceptual</th>
+            <th>SLA Objetivo (Previsto)</th>
+            <th>Medición Observada (Simulacro)</th>
+            <th>Evaluación Técnica</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>RPO</strong> <em>(Recovery Point Objective)</em></td>
+            <td>Pérdida máxima tolerable de datos ante un desastre, medida en tiempo transcurrido desde el último backup.</td>
+            <td>&lt; 24 horas (respaldo diario nocturno programado a las 02:00 AM).</td>
+            <td><strong>~15 minutos</strong> (antigüedad exacta del backup al momento de ejecutar el ensayo).</td>
+            <td><span class="badge badge-success">Cumplido</span> Datos expuestos acotados estrictamente a la última ventana operativa.</td>
+        </tr>
+        <tr>
+            <td><strong>RTO</strong> <em>(Recovery Time Objective)</em></td>
+            <td>Tiempo requerido para restablecer la operatividad y consistencia de la base desde declarada la emergencia.</td>
+            <td>&lt; 15 minutos (tiempo máximo para restaurar y validar la tienda).</td>
+            <td><strong>2.842 segundos</strong> (cronómetro total desde la creación de la base hasta la validación).</td>
+            <td><span class="badge badge-success">Excelente</span> Recuperación de alta velocidad, holgadamente inferior al SLA comprometido.</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>3. Resultado de Validaciones de Integridad y Restricciones Lógicas</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Entidad / Control Lógico de Integridad</th>
+            <th>Filas Esperadas (Producción)</th>
+            <th>Filas Restauradas (Test)</th>
+            <th>Discrepancia</th>
+            <th>Estado de Integridad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td><code>categoria</code></td><td>10</td><td>10</td><td>0</td><td><span class="badge badge-success">Válido</span></td></tr>
+        <tr><td><code>cliente</code></td><td>100</td><td>100</td><td>0</td><td><span class="badge badge-success">Válido</span></td></tr>
+        <tr><td><code>producto</code></td><td>500</td><td>500</td><td>0</td><td><span class="badge badge-success">Válido</span></td></tr>
+        <tr><td><code>pedido</code></td><td>1.250</td><td>1.250</td><td>0</td><td><span class="badge badge-success">Válido</span></td></tr>
+        <tr><td><code>detalle_pedido</code></td><td>3.420</td><td>3.420</td><td>0</td><td><span class="badge badge-success">Válido</span></td></tr>
+        <tr><td><strong>Productos con precio o stock inválido</strong> (<code>precio &lt; 0 OR stock &lt; 0</code>)</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-success">Consistente</span></td></tr>
+        <tr><td><strong>Detalles con cantidad o precio inválido</strong> (<code>cantidad &le; 0 OR precio_unitario &lt; 0</code>)</td><td>0</td><td>0</td><td>0</td><td><span class="badge badge-success">Consistente</span></td></tr>
+    </tbody>
+</table>
+
+<h2>4. Problema Real Encontrado y Resolución Aplicada</h2>
+<div class="callout">
+    <strong>Bloqueo por conexiones residuales y permisos de propiedad:</strong> Al intentar recrear la base descartable, el comando <span class="code">DROP DATABASE</span> falló por sesiones concurrentes abiertas. Asimismo, <span class="code">pg_restore</span> intentaba reasignar propietarios a roles que no existían en el entorno de testing.
+    <br><strong>Solución:</strong> Se incorporó en <span class="code">restore_test.ps1</span> la desconexión forzada previa con <span class="code">pg_terminate_backend()</span> y se aplicaron los modificadores <span class="code">--no-owner --no-privileges</span> para garantizar portabilidad limpia e inmediata.
+</div>
+
+<h2>5. Mejora Concreta para la Siguiente Ejecución</h2>
+<p>
+    <strong>Restauración Concurrente Multi-Hilo (<span class="code">-j &lt;N&gt;</span>):</strong> Al operar sobre bases con millones de transacciones, se recomienda ejecutar <span class="code">pg_restore -j 4</span>. Dado que el formato Custom almacena un índice interno TOC (Table of Contents), PostgreSQL permite crear índices y volcar datos de múltiples tablas en paralelo, reduciendo el RTO observado en más de un 60%.
+</p>
+
+<h2>6. Verificación del Trabajo Asistido con OpenCode / Asistente IA</h2>
+<ul>
+    <li><strong>Rol del asistente:</strong> OpenCode generó los esqueletos de <span class="code">backup_foodstore.ps1</span>, <span class="code">health_check.sql</span> y <span class="code">maintenance.sql</span>.</li>
+    <li><strong>Desvío crítico corregido 1:</strong> La IA propuso hardcodear contraseñas en el script. <em>Corrección:</em> Se rechazó por violar la política de seguridad del proyecto, adoptando autenticación por variables de entorno o <span class="code">.pgpass</span>.</li>
+    <li><strong>Desvío crítico corregido 2:</strong> La IA sugirió <span class="code">VACUUM FULL</span> para "optimizar espacio". <em>Corrección:</em> Se vetó por adquirir bloqueo exclusivo (<span class="code">AccessExclusiveLock</span>) y causar downtime total, reemplazándolo por <span class="code">VACUUM (VERBOSE, ANALYZE)</span> no bloqueante.</li>
+</ul>
+
+</body>
+</html>

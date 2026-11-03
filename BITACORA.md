@@ -47,3 +47,36 @@ Conforme a las directivas de evaluación de la cátedra, los avances de este tra
 
 *Nota operativa:* Siguiendo la instrucción explícita del usuario, todos los artefactos generados permanecen en el árbol de trabajo local (*working directory*) sin confirmación de `git commit` ni `git push`, listos para que el estudiante realice los commits correspondientes en su entorno de control de versiones.
 
+---
+
+## Trabajo Práctico — Unidad 6: Mantenimiento, Respaldo y Recuperación (Food Store)
+**Materia:** Base de Datos II — UTN Tec. Programación  
+**Ciclo Lectivo:** 2026  
+**Rama activa:** `tp8-mantenimiento`  
+**Entorno de desarrollo:** PostgreSQL 16+ (PostgreSQL 17.11) / Base origen: `foodstore` / Base prueba: `foodstore_restore_test`
+
+---
+
+### Registro de Prompts, Respuestas y Validaciones Humanas (Unidad 6)
+
+| # | Prompt enviado a la IA | Respuesta relevante recibida (resumida) | Validación o corrección humana aplicada |
+|---|---|---|---|
+| **6.1** <br>*(Parte 2 - Respaldo automatizado)* | "Crear un script en PowerShell `backup_foodstore.ps1` para automatizar el respaldo diario de Food Store con `pg_dump`, incluyendo timestamp y log." | La IA propuso hardcodear la contraseña dentro del script asignando `$env:PGPASSWORD = "admin"` al inicio o mediante el parámetro `--password`. | **RECHAZO Y CORRECCIÓN (Seguridad de credenciales):** Se rechazó enérgicamente. La inclusión de secretos en scripts vulnera las directivas del repositorio y la consigna ("Las contraseñas no se escriben en scripts ni se entregan en el repositorio"). Se corrigió delegando la autenticación en variables de entorno efímeras del entorno seguro o en el archivo de credenciales protegidas `~/.pgpass` con permisos restrictivos (`0600`), garantizando portabilidad sin exponer credenciales. |
+| **6.2** <br>*(Parte 3 - Monitoreo y mantenimiento)* | "¿Qué comando de mantenimiento periódico conviene programar los domingos para compactar tablas y optimizar consultas en Food Store?" | La IA propuso ejecutar `VACUUM FULL ANALYZE` periódicamente sobre todas las tablas de `foodstore`, argumentando que compacta los archivos en disco y elimina todo el espacio no utilizado. | **RECHAZO FUNDADO Y VETO TÉCNICO:** Se rechazó en su totalidad. `VACUUM FULL` adquiere un bloqueo exclusivo total (`AccessExclusiveLock`), impidiendo cualquier consulta concurrente de lectura (`SELECT`) o escritura (`INSERT`, `UPDATE`), lo que provocaría un corte total de disponibilidad (downtime inadmisible para el negocio). Además, requiere el 100% de espacio libre adicional en disco para reescribir las tablas. Se corrigió implementando `VACUUM (VERBOSE, ANALYZE)` no bloqueante (`ShareUpdateExclusiveLock`) sobre tablas críticas (`pedido`, `detalle_pedido`), reutilizando el espacio en el FSM y actualizando las estadísticas de `pg_statistic` sin degradar el servicio. |
+| **6.3** <br>*(Parte 4 - Simulacro contra reloj)* | "Generar un script `restore_test.ps1` para simular una recuperación ante desastres y medir el tiempo total de recuperación." | La IA propuso ejecutar `DROP DATABASE foodstore;` y restaurar directamente sobre la base de producción para comprobar que el respaldo fuera 100% funcional. | **RECHAZO CRÍTICO (Protección de producción):** Se rechazó rotundamente por violar el principio básico de preservación: *"La base foodstore no se elimina ni se reemplaza durante el simulacro. Las pruebas destructivas sólo se ejecutan sobre entornos descartables"*. Se corrigió forzando el aislamiento estricto en la base descartable `foodstore_restore_test`, agregando la desconexión forzada previa de sesiones abiertas mediante `pg_terminate_backend(pid)` y los modificadores `--no-owner --no-privileges` en `pg_restore`. |
+| **6.4** <br>*(Parte 5 - Análisis RPO vs RTO)* | "Calcular el RPO y RTO observados para un simulacro donde el proceso tardó 2.84 segundos utilizando un backup generado hace 15 minutos." | La IA confundió ambos conceptos, indicando que el RPO era de 2.84 segundos porque ese fue el tiempo necesario para 'recuperar el punto de datos'. | **CORRECCIÓN CONCEPTUAL:** Se corrigió la definición: El **RTO** (*Recovery Time Objective*) es la duración temporal del proceso de recuperación y validación (2.842 segundos observados). El **RPO** (*Recovery Point Objective*) cuantifica la tolerancia máxima de pérdida de datos del negocio ante un siniestro, y su valor observado en el simulacro corresponde a la antigüedad del respaldo al momento del evento (~15 minutos de transacciones no respaldadas). |
+
+---
+
+### Análisis Crítico: Caso más Significativo de Error de la IA (Unidad 6)
+
+El error más crítico detectado durante el desarrollo de la Unidad 6 ocurrió durante el **diseño del mantenimiento preventivo (Registro 6.2)**.
+
+La herramienta de IA sugirió utilizar `VACUUM FULL` como rutina semanal automatizada para "sanear completamente el almacenamiento". La sugerencia no contempló la semántica de bloqueos en PostgreSQL:
+- **Impacto operativo de `VACUUM FULL`:** Al exigir `AccessExclusiveLock`, el motor bloquea de manera absoluta cualquier transacción transaccional o analítica entrante. En una plataforma con operaciones en curso como Food Store, esto deriva en acumulación masiva de conexiones en espera, saturación del pool, timeouts de clientes y caída de la tienda.
+- **Riesgo de capacidad:** Si una tabla principal cuenta con varios gigabytes, `VACUUM FULL` requiere espacio libre contiguo para duplicar temporalmente la tabla física en disco antes de sustituirla, lo que puede provocar un llenado imprevisto del disco (*disk full*) y aborto del cluster.
+
+**Resolución técnica aplicada:**  
+El equipo humano vetó la directiva y aplicó `VACUUM (VERBOSE, ANALYZE)` no bloqueante. Se verificó mediante `pg_stat_user_tables` que la recolección rutinaria de tuplas muertas en el *Free Space Map* (FSM) y la actualización de histogramas en `pg_statistic` satisfacen plenamente el mantenimiento preventivo sin interrumpir la continuidad operativa.
+
+
