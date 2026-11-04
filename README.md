@@ -2,155 +2,128 @@
 
 Repositorio del proyecto integrador **«Food Store»** desarrollado para la asignatura **Base de Datos II** (Tecnicatura Universitaria en Programación — UTN).
 
-El repositorio reúne y documenta el avance progresivo de los trabajos prácticos de la materia:
-1. **Primera entrega parcial del Trabajo Práctico Integrador (TPI):** Consolidación de las Unidades 1, 2 y 3 (integridad, transacciones, optimización, índices, vistas y procedimientos).
+El repositorio documenta el avance progresivo de todas las unidades de la materia:
+1. **TPI Primer Parcial (Unidades 1, 2 y 3):** Integridad relacional, transacciones ACID, concurrencia, optimización con índices y procedimientos almacenados.
 2. **TP6 (Unidad 4):** Forma Normal de Boyce-Codd (FNBC) y Desnormalización Controlada mediante vistas materializadas.
-3. **TP7 (Unidad 5):** Administración y Seguridad de Food Store: roles, auditoría, incidentes y protección de datos personales.
-4. **TP8 (Unidad 6):** Mantenimiento, Respaldo y Recuperación ante desastres (Disaster Recovery) de Food Store.
-5. **TP9 (Unidad 7):** NoSQL y nuevas formas de almacenamiento: modelado documental, migración y contrastación PostgreSQL vs. MongoDB.
+3. **TP7 (Unidad 5):** Administración y Seguridad: roles bajo mínimo privilegio, auditoría nativa, incidentes y Ley 25.326.
+4. **TP8 (Unidad 6):** Mantenimiento, Respaldo y Recuperación ante desastres (Disaster Recovery).
+5. **TP9 (Unidad 7):** Persistencia NoSQL y modelado documental con MongoDB vs. PostgreSQL.
+6. **TP10 / TP8 Cátedra (Unidad 8):** Bases de Datos para Dispositivos Móviles e Integración: arquitectura *Offline-First* con SQLite, sincronización y semáforo.
 
 ---
 
-## Estado del proyecto
+## Estado Actual del Proyecto: Unidad 8 (TP10)
 
-El estado actual del repositorio incorpora el **TP9 — Unidad 7: NoSQL y nuevas formas de almacenamiento (MongoDB y Food Store)**, implementando la representación documental del subconjunto transaccional de pedidos y líneas de detalle, la contrastación verificable de consultas entre ambos motores, y la evaluación crítica de recomendaciones de arquitectura generadas por Inteligencia Artificial.
+El estado actual del repositorio implementa el **Trabajo Práctico N.º 8 (TP10) — Bases de Datos Móviles e Integración**, consolidando la capa de datos de Food Store en una feria gastronómica sin señal:
 
-- **Rama activa de trabajo:** `tp9-nosql`
-- **Motores utilizados:** PostgreSQL 17.11 (OLTP Relacional) y MongoDB 9.0.4 (Documental NoSQL)
-- **Shells e interfaces de comando:** `mongosh` (2.x), `psql`, PowerShell (.ps1) y Bash (.sh)
-- **Bases de datos involucradas:** `foodstore` (PostgreSQL relacional) y `foodstore_nosql` (MongoDB documental)
-
----
-
-## Alcance del repositorio por entregas
-
-### 1. TPI del primer parcial (Unidades 1, 2 y 3)
-Consolida el diseño relacional, transacciones ACID, concurrencia, optimización de consultas con `EXPLAIN ANALYZE`, índices B-Tree/parciales, vistas y el borrado lógico mediante `sp_desactivar_producto`.
-- Documentación e informe: `docs/tpi_parcial1/README.md` e `docs/tpi_parcial1/informe_tpi_parcial1.md`.
-- Pruebas reproducibles: `db/tpi_parcial1_pruebas.sql`.
-
-### 2. TP6 (Unidad 4: FNBC y Desnormalización Controlada)
-Aborda la descomposición sin pérdida preservando dependencias de `control_lote_almacen` en `responsable_deposito` y `control_lote`, y la aceleración analítica del panel de ventas mediante la vista materializada `mv_ventas_categoria_dia` con auditoría de sincronización.
-- Documentación e informe histórico: `docs/tp6/README.md` e `docs/tp6/informe_fnbc.md`.
-- Scripts canónicos: `db/tp_fnbc_control_lote.sql` y `db/tp_desnormalizacion_top_categorias.sql`.
-
-### 3. TP7 (Unidad 5: Administración y Seguridad)
-Implementa la arquitectura de identidades bajo mínimo privilegio, auditoría nativa de servidor, laboratorio de simulación de incidentes, protección de datos personales y la bitácora de uso crítico de IA.
-- Documentación e informes: `docs/tp7/` (especificación Kiro, `informe_auditoria.md`, `informe_incidente.md`, `verificacion_roles.md`).
-- Scripts canónicos: `sql/roles.sql`, `sql/auditoria_test.sql`, `sql/simulacro_incidente.sql` y `sql/usuario_anon.sql`.
-
-### 4. TP8 (Unidad 6: Mantenimiento, Respaldo y Recuperación)
-Desarrolla el plan operativo de continuidad, resiliencia y diagnóstico de salud para Food Store:
-- Respaldo automatizado custom (`-Fc`) con timestamping (`backup_foodstore.ps1` / `.sh`).
-- Monitoreo en 4 dimensiones (`health_check.sql`) y mantenimiento seguro no bloqueante (`maintenance.sql`).
-- Simulacro cronometrado de recuperación ante desastres en entorno aislado midiendo RTO y RPO (`restore_test.ps1` / `.sh`).
-- Documentación e informe de 1 página: `docs/tp8/README.md`, `docs/tp8/informe_u6.md` y `docs/tp8/informe_u6.pdf`.
-
-### 5. TP9 (Unidad 7: NoSQL y Nuevas Formas de Almacenamiento)
-Implementa el paradigma orientado a documentos sobre la base de pedidos de Food Store:
-* **Parte 1 — Modelo Documental y Migración:** Análisis de tablas y claves de PostgreSQL (`pedido`, `detalle_pedido`, `cliente`, `producto`), diseño desnormalizado BSON (*Aggregate Root*) en la colección `pedidos` (base `foodstore_nosql`), migración con `insertMany()` y fundamentación de las reglas de integridad y ventajas de embeber líneas y clientes.
-* **Parte 2 — Consultas y Verificación Cruzada:** Ejecución de 4 consultas en MongoDB Shell (`mongosh`) con filtros directos y sobre arreglos internos, formulación de sentencias análogas en PostgreSQL (`consultas_postgresql.sql`) y tabla comparativa demostrando 100% de coincidencia en cantidad e identificadores (`[1, 3, 4]`).
-* **Parte 3 — Evaluación de IA y Conclusión Técnica:** Contraste crítico de afirmaciones de asistentes de IA sobre atomicidad a nivel de documento único y costo de uniones relacionales vs. denormalización, junto a una conclusión técnica de 177 palabras que fundamenta la conveniencia de una arquitectura híbrida/políglota.
-* **Entregables:** `docs/tp9/informe_tp9.md`, `docs/tp9/informe_tp9.pdf` (5 páginas exactas), `docs/tp9/consultas_mongodb.js` y `docs/tp9/consultas_postgresql.sql`.
+- **Rama activa de trabajo:** `tp10-moviles-integracion`
+- **Regla de Oro:** *"El móvil propone, el servidor dispone"*. La tablet solo consulta y arma borradores; PostgreSQL es la única fuente de verdad sobre stock, precios y ventas.
+- **Motores integrados:**
+  - **PostgreSQL 16+ (Servidor Central):** Fuente de verdad transaccional ACID (`foodstore`).
+  - **MongoDB 9+ (Capa Documental):** Vista agregada para consultas analíticas rápidas (`foodstore_nosql`).
+  - **SQLite 3.50+ (Dispositivo Móvil):** Libreta desconectada en modo `STRICT` (`movil/foodstore_movil.db`).
+- **Herramientas de IA y Gobernanza:** Kiro (especificación EARS) y OpenCode / Antigravity con bitácora crítica documentada.
 
 ---
 
-## Estructura del repositorio
+## Estructura del Repositorio para la Entrega
 
 ```text
-Food-Store/
-├── db/                                      # Scripts SQL históricos y de desarrollo
-│   ├── schema.sql                           # Esquema DDL fuente de verdad
-│   ├── indices.sql                          # Índices del modelo base
-│   ├── views.sql                            # Vistas del dominio base
-│   ├── generador_datos_tp3_carga.sql        # Poblado masivo de datos
-│   ├── tp_fnbc_control_lote.sql             # TP6: Descomposición FNBC
-│   ├── tp_desnormalizacion_top_categorias.sql # TP6: Vista materializada y auditoría
-│   ├── roles.sql                            # TP7: Implementación de roles y permisos
-│   └── backups/                             # Respaldos .dump (excluidos en .gitignore)
+food-store/
+├── README.md                                # Guía general del proyecto y orden de ejecución
+├── movil/                                   # Capa de datos del dispositivo móvil (Unidad 8)
+│   ├── schema_sqlite.sql                    # Consigna 1.b: Esquema SQLite STRICT y claves foráneas
+│   ├── pruebas_sqlite.sql                   # Consigna 1.c: Transacciones, Caso C1 y Caso C7
+│   ├── snapshot_servidor.sql                # Consigna 2.a: Tabla receptora y carga en SQLite
+│   ├── postgresql_snapshot.sql              # Consigna 2.a: Vista oficial v_snapshot_movil en PostgreSQL
+│   ├── servidor_snapshot.csv                # Consigna 2.a: Archivo CSV de intercambio de instantánea
+│   ├── semaforo.sql                         # Consigna 2.b: Consulta SQL de resolución del semáforo
+│   ├── simulador_casos.py                   # Consigna 2.c: Suite de simulación automatizada (C2 a C6)
+│   ├── ejecutar_pruebas.py                  # Runner de validación de esquema y pruebas unitarias
+│   └── foodstore_movil.db                   # Archivo físico binario de la base SQLite
 │
-├── sql/                                     # Entregables canónicos SQL
-│   ├── roles.sql                            # TP7: Jerarquías, RLS y mínimo privilegio
-│   ├── auditoria_test.sql                   # TP7: Secuencia de prueba de auditoría
-│   ├── simulacro_incidente.sql              # TP7: Reproducción de ataque de acceso indebido
-│   ├── usuario_anon.sql                     # TP7: Dataset anonimizado
-│   ├── health_check.sql                     # TP8: Monitoreo preventivo del cluster
-│   └── maintenance.sql                      # TP8: Revisión de autovacuum y VACUUM ANALYZE
-│
-├── docs/                                    # Informes, especificaciones y evidencias
-│   ├── tp1/ a tp6/                          # Documentación histórica
-│   ├── tp7/                                 # TP7: Entregables formales de Unidad 5
-│   ├── tp8/                                 # TP8: Entregables formales de Unidad 6
-│   │   ├── README.md                        # Documentación consolidada de TP8
-│   │   ├── SPEC_U6.md                       # Especificación del plan y reglas operativas
-│   │   ├── backup_foodstore.ps1 / .sh       # Script de respaldo automatizado
-│   │   ├── health_check.sql                 # Monitoreo preventivo de 4 dimensiones
-│   │   ├── maintenance.sql                  # Mantenimiento justificado no bloqueante
-│   │   ├── restore_test.ps1 / .sh           # Simulacro de recuperación y RTO/RPO
-│   │   └── informe_u6.md / .pdf             # Informe post-incidente
+├── docs/                                    # Documentación consolidada de la materia
+│   ├── informe.pdf                          # Informe final del TP (3 páginas, Consignas 1.a, 2.c, 3.a-c)
+│   ├── informe.html                         # Maquetado HTML de alta calidad para exportación
+│   ├── bitacora_ia.md                       # Consigna 4.b: Bitácora de IA (3 interacciones con fundamento)
+│   ├── DUIA.md                              # Consigna 4.b: Declaración de Uso de IA de la cátedra
+│   ├── kiro/                                # Consigna 4.a: Especificación formal en Kiro
+│   │   ├── requirements.md                  # Requisitos funcionales en notación formal EARS
+│   │   ├── design.md                        # Diseño técnico y arquitectura de sincronización
+│   │   └── tasks.md                         # Desglose de tareas de implementación
 │   │
-│   ├── tp9/                                 # TP9: Entregables formales de Unidad 7 (NoSQL)
-│   │   ├── BDII_Unidad7_TP_FoodStore_NoSQL.md # Consigna del TP Unidad 7
-│   │   ├── BDII_Unidad7_TP_FoodStore_NoSQL.pdf # Consigna original en PDF
-│   │   ├── consultas_mongodb.js             # Script ejecutable de inicialización y consultas
-│   │   ├── consultas_postgresql.sql         # Consultas SQL equivalentes de comparación
-│   │   ├── informe_tp9.md                   # Informe exhaustivo en formato Markdown
-│   │   ├── informe_tp9.html                 # Maquetado HTML optimizado para exportación
-│   │   └── informe_tp9.pdf                  # Informe oficial de entrega (5 páginas exactas)
+│   ├── tp10/                                # Archivos fuente y consignas oficiales de Unidad 8
+│   │   ├── BDII_U8_TP8_Food_Store (1).md    # Enunciado oficial del TP8 de la cátedra
+│   │   ├── BDII_U8_Material_Teorico...md    # Apunte conceptual de 11 paradas de la cátedra
+│   │   ├── informe_tp10.md                  # Borrador completo del informe técnico
+│   │   ├── informe_tp10.pdf                 # Copia espejo del informe oficial
+│   │   └── kiro/                            # Copia espejo de especificaciones Kiro
 │   │
-│   └── tpi_parcial1/                        # Consolidación del primer parcial
+│   ├── tp9/                                 # Histórico TP9: NoSQL (MongoDB vs. PostgreSQL)
+│   ├── tp8/                                 # Histórico TP8: Mantenimiento y Recuperación
+│   ├── tp7/                                 # Histórico TP7: Seguridad y Auditoría
+│   └── tp6/                                 # Histórico TP6: FNBC y Desnormalización
 │
-├── BITACORA.md                              # Bitácora de interacción y lectura crítica con IA
-└── README.md                                # Documentación general del repositorio (Estado TP9)
+├── db/                                      # Scripts SQL históricos de la base PostgreSQL
+└── sql/                                     # Entregables canónicos de unidades previas
 ```
 
 ---
 
-## Bases de datos del proyecto
+## Procedimiento de Ejecución Paso a Paso desde Cero (Consigna 4.c)
 
-1. **`bd2_tpi_parcial1`:** Base consolidada del primer parcial (Unidades 1 a 3).
-2. **`bd2_tp6`:** Base descartable utilizada para las pruebas de FNBC y desnormalización de la Unidad 4.
-3. **`bd2_tp7`:** Base de desarrollo dedicada para la Unidad 5 (Administración y Seguridad).
-4. **`foodstore`:** Base principal de producción PostgreSQL para el ciclo de vida, respaldos, monitoreo y comparación SQL.
-5. **`foodstore_restore_test`:** Base descartable para los simulacros de recuperación y medición de RTO/RPO del TP8.
-6. **`foodstore_nosql`:** Base documental en MongoDB para el modelado de pedidos embebidos y consultas del TP9.
+Para verificar y reproducir la capa móvil y la sincronización de forma 100% automatizada:
 
----
-
-## Procedimiento de Reproducción y Verificación del TP9 (Unidad 7)
-
-Para reproducir y validar el laboratorio NoSQL de forma automatizada:
-
-### 1. Inicialización y Consultas en MongoDB (`mongosh`)
-Ejecuta la limpieza idempotente, inserción masiva (`insertMany`) de los 5 pedidos de muestra y las 4 consultas operativas:
+### 1. Inicialización y Pruebas Unitarias de SQLite (Consigna 1)
+Crea la base de datos `movil/foodstore_movil.db` desde cero, aplica `schema_sqlite.sql`, verifica claves foráneas activas, transacciones atómicas (`COMMIT` / `ROLLBACK`), consulta offline (Caso C1) y rechazo de datos inválidos (Caso C7):
 ```powershell
-mongosh --quiet --file docs/tp9/consultas_mongodb.js
+python movil/ejecutar_pruebas.py
 ```
-*Salida esperada:* Conteo de 5 documentos insertados y salida JSON formateada para cada una de las 4 consultas (proyección total, filtro de estado `ENTREGADO`, búsqueda de producto `Hamburguesa Clásica` en arreglo interno y filtro por total > $10.000).
+*Salida esperada:*
+```text
+[*] PRAGMA foreign_keys = 1 (Activado)
+[OK] C7.a Rechazado correctamente por restricción CHECK: cantidad > 0
+[OK] C7.b Rechazado correctamente por restricción FOREIGN KEY
+[+] Todas las pruebas de la Consigna 1 fueron completadas con éxito.
+```
 
-### 2. Consultas Equivalentes en PostgreSQL (`psql`)
-Ejecuta las consultas relacionales equivalentes sobre la base `foodstore`:
+### 2. Generación e Importación de la Instantánea (Consigna 2.a)
+En el servidor PostgreSQL, se publica la vista oficial con centavos y lápidas:
 ```powershell
-psql -U postgres -d foodstore -f docs/tp9/consultas_postgresql.sql
+psql -U postgres -d foodstore -f movil/postgresql_snapshot.sql
 ```
-*Salida esperada:* Recuperación de los registros coincidentes confirmando que los pedidos devueltos en PostgreSQL son exactamente `[1, 3, 4]`, verificando la correspondencia biunívoca con MongoDB.
+La vista se exporta a `movil/servidor_snapshot.csv` y se importa en SQLite mediante `movil/snapshot_servidor.sql`.
+
+### 3. Simulación Automatizada del Semáforo y Casos C2 a C6 (Consigna 2.b y 2.c)
+Ejecuta la suite integral de simulación que verifica la resolución de conflictos tarifarios, quiebres de stock, bajas lógicas e idempotencia:
+```powershell
+python movil/simulador_casos.py
+```
+*Salida esperada:*
+```text
+CASO C5 -> Estado: SIMULADO_APROBADO
+CASO C2 (Envío 1) -> Estado: CONFLICTO (precio subió en servidor)
+CASO C2 (Envío 2) -> Estado: SIMULADO_APROBADO (cliente acepta nuevo precio)
+CASO C3 -> Estado: RECHAZADO (stock insuficiente en servidor)
+CASO C4 -> Estado: RECHAZADO (lápida activa; oculto en catálogo local)
+CASO C6 -> [OK] Reintento rechazado en SQLite por Clave Primaria (Idempotencia)
+[+] TODOS LOS CASOS C2 A C6 VERIFICADOS SATISFACTORIAMENTE (0 ERRORES)
+```
 
 ---
 
-## Decisiones Técnicas y de Diseño NoSQL Consolidadas
+## Guía para el Ensayo de Defensa (10 Minutos)
 
-* **Patrón Aggregate Root y Desnormalización:** Se modela el pedido como documento único que contiene la cabecera, el snapshot de contacto del cliente y el arreglo de líneas de venta, eliminando operaciones de `$lookup` y permitiendo lecturas atómicas de una sola operación de disco/red (*single-document atomicity*).
-* **Inmutabilidad de Precios Históricos:** Al desnormalizar los productos dentro del arreglo `lineas`, se congelan el `precio_unitario` y el `subtotal` calculados al instante de la venta, garantizando que futuras modificaciones en el catálogo relacional no distorsionen los importes de ventas pasadas.
-* **Navegación de Arreglos vs. Uniones Relacionales:** En MongoDB, filtrar por productos embebidos (`lineas.producto_id`) preserva la cardinalidad de documentos sin duplicaciones; en PostgreSQL, la consulta exige un `JOIN` entre `pedido` y `detalle_pedido` junto a `DISTINCT` o `WHERE EXISTS` para neutralizar la multiplicación cartesiana de filas.
-* **Persistencia Políglota (CQRS):** Se fundamenta la conveniencia de no descartar PostgreSQL, sino combinarlo con MongoDB: mantener PostgreSQL como núcleo transaccional ACID de alta integridad para la compra y control de inventario concurrente, y proyectar asincrónicamente pedidos finalizados a MongoDB para visualización e historial de alta concurrencia.
+Para la defensa individual ante la cátedra en la Semana 13:
 
----
-
-## Historial de Ramas y Archivo de Documentación
-
-* **`main`:** Rama troncal de integración de entregas evaluadas.
-* **`tpi-parcial1`:** Primera entrega integradora (Unidades 1 a 3).
-* **`tp6-fnbc-desnormalizacion`:** Unidad 4 (FNBC y desnormalización). Preservado en [`docs/tp6/README.md`](docs/tp6/README.md).
-* **`tp7-administracion-seguridad`:** Unidad 5 (Administración y Seguridad). Preservado en [`docs/tp7/README.md`](docs/tp7/README.md).
-* **`tp8-mantenimiento`:** Unidad 6 (Mantenimiento, Respaldo y Recuperación). Preservado en [`docs/tp8/README.md`](docs/tp8/README.md).
-* **`tp9-nosql`:** Unidad 7 (NoSQL y nuevas formas de almacenamiento — Rama Activa de Trabajo).
+1. **El Mapa de la Capa de Datos (3 minutos):**  
+   Explicar la arquitectura de 3 motores:
+   * **PostgreSQL:** Única fuente de verdad. Decide stock, precios y ventas formales (`sp_crear_pedido`).
+   * **MongoDB:** Motor documental desnormalizado para consultas analíticas rápidas de pedidos sin bloquear el OLTP.
+   * **SQLite:** Libreta embebida para la tablet del food truck. Solo prepara borradores y no tiene autoridad decisoria.
+2. **Demostración en Vivo (4 minutos):**  
+   * Ejecutar `python movil/simulador_casos.py`.
+   * Mostrar en vivo la resolución del **Caso C2** (el paso de `CONFLICTO` a `SIMULADO_APROBADO` tras aceptar el cliente) o el **Caso C4** (demostrando cómo la lápida oculta el ítem de `v_catalogo_disponible` pero conserva la fila en `producto_cache` para no quebrar claves foráneas).
+3. **Decisión de Diseño y Hallazgo de IA Descartado (3 minutos):**  
+   * Defender el **Hallazgo H1** de la bitácora: Justificar por qué se descartó la propuesta de la IA de hacer `UNIQUE (id_local)` en `cola_sync`. Explicar que un borrador necesita reintentarse tras resolver un conflicto tarifario, y que la solución técnica correcta es el índice condicional único `ux_cola_una_pendiente` (`WHERE estado = 'PENDIENTE'`).
+   * Explicar por qué la protección real contra duplicaciones en producción debe residir en PostgreSQL mediante la tabla central `solicitud_movil` con `ON CONFLICT DO NOTHING`.

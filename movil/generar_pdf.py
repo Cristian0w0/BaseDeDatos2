@@ -1,0 +1,463 @@
+import os
+import subprocess
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DOCS_DIR = os.path.join(BASE_DIR, "docs")
+TP10_DIR = os.path.join(DOCS_DIR, "tp10")
+
+HTML_CONTENT = """<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Final TP8 (TP10): Bases de Datos Móviles e Integración — Food Store</title>
+<style>
+    @page {
+        size: A4;
+        margin: 10mm 12mm 10mm 12mm;
+    }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 8pt;
+        line-height: 1.32;
+        color: #1a202c;
+        margin: 0;
+        padding: 0;
+    }
+    .header {
+        border-bottom: 2px solid #2b6cb0;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+    }
+    .header h1 {
+        font-size: 13pt;
+        color: #2b6cb0;
+        margin: 0 0 2px 0;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+    }
+    .header .subtitle {
+        font-size: 8.5pt;
+        font-weight: 600;
+        color: #4a5568;
+        margin: 0 0 4px 0;
+    }
+    .meta-box {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        background: #ebf8ff;
+        border: 1px solid #bee3f8;
+        border-radius: 4px;
+        padding: 5px 8px;
+        font-size: 7.5pt;
+        margin-bottom: 8px;
+    }
+    .meta-box div { margin: 1px 0; }
+    .meta-box strong { color: #2b6cb0; }
+    h2 {
+        font-size: 10pt;
+        color: #2c5282;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 2px;
+        margin: 10px 0 4px 0;
+        font-weight: 700;
+        page-break-after: avoid;
+    }
+    h3 {
+        font-size: 8.8pt;
+        color: #2d3748;
+        margin: 6px 0 3px 0;
+        font-weight: 600;
+        page-break-after: avoid;
+    }
+    h4 {
+        font-size: 8pt;
+        color: #4a5568;
+        margin: 4px 0 2px 0;
+        font-weight: 600;
+        page-break-after: avoid;
+    }
+    p { margin: 0 0 5px 0; text-align: justify; }
+    ul, ol { margin: 0 0 5px 0; padding-left: 16px; }
+    li { margin-bottom: 2px; }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 4px 0 7px 0;
+        font-size: 7.3pt;
+        page-break-inside: avoid;
+    }
+    th, td {
+        border: 1px solid #cbd5e0;
+        padding: 3px 5px;
+        text-align: left;
+        vertical-align: top;
+    }
+    th {
+        background-color: #edf2f7;
+        color: #2d3748;
+        font-weight: 600;
+    }
+    tr:nth-child(even) { background-color: #f7fafc; }
+    code {
+        font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+        font-size: 7pt;
+        background: #edf2f7;
+        padding: 1px 3px;
+        border-radius: 2px;
+        color: #c53030;
+    }
+    pre {
+        background: #2d3748;
+        color: #f7fafc;
+        padding: 6px 8px;
+        border-radius: 4px;
+        font-family: "Cascadia Code", Consolas, monospace;
+        font-size: 6.8pt;
+        line-height: 1.25;
+        margin: 3px 0 6px 0;
+        overflow: hidden;
+        page-break-inside: avoid;
+    }
+    .badge {
+        display: inline-block;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 6.8pt;
+        font-weight: 600;
+    }
+    .badge-green { background: #c6f6d5; color: #22543d; }
+    .badge-yellow { background: #fefcbf; color: #744210; }
+    .badge-red { background: #fed7d7; color: #742a2a; }
+    .badge-blue { background: #bee3f8; color: #2b6cb0; }
+    .alert {
+        background: #fffaf0;
+        border-left: 3px solid #dd6b20;
+        padding: 4px 8px;
+        margin: 4px 0 6px 0;
+        font-size: 7.3pt;
+    }
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        font-size: 6.8pt;
+        color: #a0aec0;
+        text-align: center;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 2px;
+    }
+    .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>FOOD STORE · PROYECTO INTEGRADOR</h1>
+    <div class="subtitle">Trabajo Práctico N.º 8 (TP10) · Unidad 8: Bases de Datos para Dispositivos Móviles e Integración</div>
+</div>
+
+<div class="meta-box">
+    <div><strong>Asignatura:</strong> Base de Datos II (UTN TUP)</div>
+    <div><strong>Estudiante:</strong> Cristian Rodriguez (Cloverfield)</div>
+    <div><strong>Fecha:</strong> Noviembre 2026</div>
+    <div><strong>Rama Git:</strong> <code>tp10-moviles-integracion</code></div>
+    <div><strong>Motores:</strong> PostgreSQL 16+ · SQLite 3.50+</div>
+    <div><strong>NoSQL:</strong> MongoDB 9.0+ (Unidad 7)</div>
+    <div><strong>Herramientas:</strong> Kiro (EARS) · OpenCode</div>
+    <div><strong>Entrega:</strong> Semana 13 / Cierre de Cursada</div>
+</div>
+
+<h2>1. La Base de la Tablet</h2>
+
+<h3>1.a Qué datos viajan al dispositivo móvil</h3>
+<p>
+Para operar el food truck en una feria gastronómica sin señal de red garantizada, la base de datos embebida SQLite en la tablet debe contener la información mínima necesaria para atender clientes y armar borradores. Se aplica la <strong>Regla de Oro:</strong> <em>"El móvil propone, el servidor dispone"</em>.
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:25%;">Entidad / Atributo</th>
+            <th style="width:12%; text-align:center;">¿Viaja?</th>
+            <th>Justificación Técnica, Operativa y Legal</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong><code>producto (id, nombre)</code></strong></td>
+            <td style="text-align:center;"><span class="badge badge-green">SÍ</span></td>
+            <td>Imprescindible para confeccionar la carta y exhibirla al público en la interfaz táctil.</td>
+        </tr>
+        <tr>
+            <td><strong><code>producto (precio)</code></strong></td>
+            <td style="text-align:center;"><span class="badge badge-green">SÍ</span></td>
+            <td>Se almacena como <code>precio_centavos INTEGER</code> para evitar imprecisiones de coma flotante.</td>
+        </tr>
+        <tr>
+            <td><strong><code>producto (stock)</code></strong></td>
+            <td style="text-align:center;"><span class="badge badge-green">SÍ</span></td>
+            <td>Viaja como <code>stock_visto INTEGER</code> con carácter puramente orientativo; no reserva unidades.</td>
+        </tr>
+        <tr>
+            <td><strong><code>producto (disponible)</code></strong></td>
+            <td style="text-align:center;"><span class="badge badge-green">SÍ</span></td>
+            <td>Permite ocultar del menú productos fuera de servicio (<code>disponible_visto IN (0,1)</code>).</td>
+        </tr>
+        <tr>
+            <td><strong><code>producto / cat (eliminado)</code></strong></td>
+            <td style="text-align:center;"><span class="badge badge-green">SÍ</span></td>
+            <td>Viaja como <strong>lápida (<em>tombstone</em>)</strong>: oculta el producto del catálogo sin quebrar integridad referencial.</td>
+        </tr>
+        <tr>
+            <td><strong><code>usuario (contraseñas/hashes)</code></strong></td>
+            <td style="text-align:center;"><span class="badge badge-red">NO</span></td>
+            <td>Crítico. Nunca abandonan PostgreSQL para evitar filtraciones masivas ante robo o pérdida de la tablet.</td>
+        </tr>
+        <tr>
+            <td><strong><code>cliente (email, celular, datos)</code></strong></td>
+            <td style="text-align:center;"><span class="badge badge-red">NO</span></td>
+            <td>Datos personales protegidos por la Ley 25.326 y principio de minimización; innecesarios en mostrador.</td>
+        </tr>
+        <tr>
+            <td><strong><code>pedido (historial global)</code></strong></td>
+            <td style="text-align:center;"><span class="badge badge-red">NO</span></td>
+            <td>La tablet no realiza auditorías ni balances históricos; minimiza el consumo de batería y almacenamiento.</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>
+<strong>Fundamentación legal y fuente de verdad:</strong> Se aplica el principio de mínimo privilegio y minimización de datos (Art. 4 y 9 de la Ley 25.326). Lo que no se almacena en el dispositivo móvil no puede ser sustraído. <strong>PostgreSQL</strong> es la única fuente de verdad (<em>Single Source of Truth</em>); la tablet solo prepara borradores temporales y nunca altera stock ni precios centrales de manera autónoma.
+</p>
+
+<h3>1.b Esquema SQLite en modo STRICT y Restricciones</h3>
+<p>
+El esquema en <code>movil/schema_sqlite.sql</code> se ejecuta con <code>PRAGMA foreign_keys = ON;</code> y estructura cuatro tablas bajo estándar <code>STRICT</code>:
+</p>
+<ul>
+    <li><code>producto_cache</code>: Catálogo de lectura con precios enteros en centavos y banderas enteras (0/1).</li>
+    <li><code>pedido_borrador</code>: Identificado mediante <code>id_local TEXT PRIMARY KEY</code> (UUID generado en la tablet).</li>
+    <li><code>item_borrador</code>: Clave foránea con <code>ON DELETE CASCADE</code> al borrador, clave foránea a producto y <code>CHECK (cantidad > 0)</code>.</li>
+    <li><code>cola_sync</code>: Identificador <code>solicitud_uuid TEXT PRIMARY KEY</code> con estados <code>('PENDIENTE', 'CONFLICTO', 'RECHAZADO', 'SIMULADO_APROBADO')</code> y el índice condicional único <code>ux_cola_una_pendiente</code> sobre <code>id_local WHERE estado = 'PENDIENTE'</code>.</li>
+    <li><code>v_catalogo_disponible</code>: Vista que filtra <code>eliminado = 0 AND disponible_visto = 1</code> y divide por 100.0.</li>
+</ul>
+
+<h3>1.c Validación Transaccional y Casos C1 y C7</h3>
+<p>
+Se ejecutó la suite de pruebas en <code>movil/pruebas_sqlite.sql</code> comprobando los tres escenarios requeridos:
+</p>
+<ul>
+    <li><strong>Transacción atómica:</strong> Un borrador completo (cabecera + ítems + solicitud en cola) se asienta en un solo bloque <code>BEGIN ... COMMIT</code>. Una segunda operación se cancela con <code>ROLLBACK</code>, verificándose 0 filas persistidas.</li>
+    <li><strong>Caso C1 (Catálogo Offline):</strong> La vista <code>v_catalogo_disponible</code> devuelve los productos aptos (Pizza Muzzarella, Empanadas, Gaseosa), excluyendo la Fugazzeta (eliminada) y Cerveza (no disponible).</li>
+    <li><strong>Caso C7 (Datos Inválidos):</strong> Un intento de insertar <code>cantidad = 0</code> es rechazado por <code>CHECK constraint failed: cantidad > 0</code>, y un intento con producto inexistente (ID 9999) es rechazado por <code>FOREIGN KEY constraint failed</code>. Registros huérfanos: <strong>0</strong>.</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h2>2. Sincronizar y Resolver: El Semáforo</h2>
+
+<h3>2.a Instantánea del Servidor e Importación</h3>
+<p>
+El servidor central PostgreSQL genera la instantánea oficial mediante la vista <code>v_snapshot_movil</code> (script <code>movil/postgresql_snapshot.sql</code>). Los precios se convierten a centavos enteros en origen (<code>(p.precio * 100)::INTEGER</code>) y la baja lógica calcula la lápida: <code>(NOT p.activo OR NOT c.activa) AS eliminado</code>. La vista se exporta a <code>movil/servidor_snapshot.csv</code> y se carga en la tabla <code>snapshot_servidor</code> en SQLite, sincronizando <code>producto_cache</code> mediante <code>INSERT OR REPLACE</code> y traduciendo <code>'t'/'f'</code> a <code>1/0</code>.
+</p>
+
+<h3>2.b Lógica del Semáforo de Sincronización</h3>
+<p>
+El script <code>movil/semaforo.sql</code> implementa una Common Table Expression (CTE) que compara solicitudes en estado <code>PENDIENTE</code> contra <code>snapshot_servidor</code>:
+</p>
+<ul>
+    <li><span class="badge badge-red">ROJO (RECHAZADO)</span>: Producto inexistente, lápida activa (<code>eliminado = 't'</code>), no disponible para venta o cantidad solicitada superior al stock.</li>
+    <li><span class="badge badge-yellow">AMARILLO (CONFLICTO)</span>: No existe causal de rechazo, pero el precio visto difiere del precio vigente en el servidor.</li>
+    <li><span class="badge badge-green">VERDE (SIMULADO_APROBADO)</span>: Todos los ítems coinciden con el inventario y lista de precios del servidor.</li>
+</ul>
+<p>
+<strong>Regla de Precedencia e Idempotencia:</strong> El ROJO invalida cualquier CONFLICTO. Solo se procesan filas <code>PENDIENTE</code>; reejecutar la simulación no modifica lo ya resuelto.
+</p>
+
+<h3>2.c Evidencia y Comprobación de Casos de Sincronización (C2 a C6)</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:10%;">Caso</th>
+            <th style="width:28%;">Situación de Prueba</th>
+            <th style="width:20%; text-align:center;">Resultado del Semáforo</th>
+            <th>Resolución y Comportamiento Verificado</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Caso C5</strong></td>
+            <td>Borrador idéntico al inventario del servidor (2 Empanadas a $1.200).</td>
+            <td style="text-align:center;"><span class="badge badge-green">SIMULADO_APROBADO</span></td>
+            <td>Todos los ítems coinciden en stock, disponibilidad y tarifa. Indica factibilidad sin constituir una venta real.</td>
+        </tr>
+        <tr>
+            <td><strong>Caso C2</strong></td>
+            <td>Borrador con Muzzarella a $9.000. El servidor actualiza tarifa a $10.500.</td>
+            <td style="text-align:center;"><span class="badge badge-yellow">CONFLICTO</span><br>&darr;<br><span class="badge badge-green">SIMULADO_APROBADO</span></td>
+            <td><strong>Envío 1:</strong> Marca CONFLICTO sin descartar el pedido. El cliente acepta pagar $10.500 en mostrador.<br><strong>Envío 2:</strong> Se actualiza el ítem a 1050000 centavos y un nuevo UUID resulta aprobado.</td>
+        </tr>
+        <tr>
+            <td><strong>Caso C3</strong></td>
+            <td>Borrador por 20 Pizzas Napolitanas; stock del servidor en 8 unidades.</td>
+            <td style="text-align:center;"><span class="badge badge-red">RECHAZADO</span></td>
+            <td>Rechazo inmediato por quiebre de stock. La tablet no emite la orden y el stock de PostgreSQL permanece inalterado.</td>
+        </tr>
+        <tr>
+            <td><strong>Caso C4</strong></td>
+            <td>Borrador con producto que el servidor da de baja lógica (lápida <code>eliminado='t'</code>).</td>
+            <td style="text-align:center;"><span class="badge badge-red">RECHAZADO</span></td>
+            <td>El semáforo rechaza la solicitud. Al actualizar la caché local, el producto desaparece de <code>v_catalogo_disponible</code> pero su fila persiste para trazabilidad.</td>
+        </tr>
+        <tr>
+            <td><strong>Caso C6</strong></td>
+            <td>Reenvío de solicitud C5 con el mismo UUID por corte de señal.</td>
+            <td style="text-align:center;"><span class="badge badge-blue">REINTENTO RECHAZADO (PK)</span></td>
+            <td>SQLite rechaza la inserción por <code>UNIQUE constraint failed: cola_sync.solicitud_uuid</code>. El semáforo no reevalúa la orden previa (idempotencia).</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>
+<strong>Dónde va la protección real en producción:</strong> La protección definitiva contra duplicaciones no puede recaer en el dispositivo móvil (que puede ser reseteado o manipulado). En un entorno productivo, reside en <strong>PostgreSQL</strong> mediante una tabla central <code>solicitud_movil (solicitud_uuid UUID PRIMARY KEY, ...)</code> insertada dentro de la misma transacción de <code>sp_crear_pedido</code> con <code>ON CONFLICT (solicitud_uuid) DO NOTHING</code>.
+</p>
+<p>
+<strong>Comprobación de Invariabilidad en PostgreSQL:</strong> Se constató mediante consulta SQL que el inventario global y el conteo de pedidos confirmados en PostgreSQL se mantuvieron idénticos antes y después de todas las pruebas.
+</p>
+
+<div class="page-break"></div>
+
+<h2>3. Integrar y Revisar: La Capa de Datos Completa</h2>
+
+<h3>3.a Mapa de la Capa de Datos (Tres Motores, Una Fuente de Verdad)</h3>
+<p>
+Food Store articula tres motores complementarios con fronteras de responsabilidad estrictas:
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:20%;">Motor de Base de Datos</th>
+            <th style="width:38%;">Qué información guarda</th>
+            <th style="width:32%;">Quién manda sobre cada dato</th>
+            <th style="width:10%; text-align:center;">Unidad</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>PostgreSQL 16+</strong><br>(Oficina Central)</td>
+            <td>Catálogo maestro, inventario transaccional, pedidos confirmados, detalles de venta, usuarios con contraseñas hasheadas (<code>pgcrypto</code>) y auditoría.</td>
+            <td><strong>Fuente de verdad única (*Single Source of Truth*)</strong>. Posee autoridad absoluta sobre precios oficiales, stock y confirmación de ventas (ACID con <code>FOR UPDATE</code>).</td>
+            <td style="text-align:center;">U1 a U6</td>
+        </tr>
+        <tr>
+            <td><strong>MongoDB 9+</strong><br>(Capa Documental)</td>
+            <td>Colección desnormalizada <code>pedidos</code> (*Aggregate Root*), conteniendo cabecera, snapshot del cliente, array de ítems y subtotales precalculados.</td>
+            <td><strong>Autoridad delegada de lectura agregada</strong>. No descuenta stock ni fija precios; provee consultas analíticas de alta velocidad sin sobrecargar el OLTP.</td>
+            <td style="text-align:center;">U7</td>
+        </tr>
+        <tr>
+            <td><strong>SQLite 3.50+</strong><br>(Tablet Food Truck)</td>
+            <td>Copia local del catálogo (<code>producto_cache</code>), borradores de órdenes (<code>pedido_borrador</code>, <code>item_borrador</code>) y cola de envíos (<code>cola_sync</code>).</td>
+            <td><strong>Sin autoridad decisoria</strong>. Libreta desconectada para preparar borradores temporales. Jamás modifica stock central: <em>el móvil propone, el servidor dispone</em>.</td>
+            <td style="text-align:center;">U8</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>3.b Plan de Mantenimiento Integral</h3>
+<ul>
+    <li><strong>Respaldo y prueba de restauración:</strong> En PostgreSQL se generan volcados nativos diarios comprimidos (<code>pg_dump -Fc</code>) en <code>db/backups/</code>. Se prueban mensualmente mediante el script automatizado <code>restore_test.ps1</code> en la base estéril <code>foodstore_restore_test</code>, verificando integridad y midiendo RTO y RPO. Las tablets no requieren backups fríos centralizados: son reemplazables y descargan una instantánea fresca del servidor.</li>
+    <li><strong>Restauración de backup viejo:</strong> Las tablets quedarían con datos "del futuro". El protocolo exige purgar inmediatamente la tabla <code>snapshot_servidor</code> en las terminales móviles, descargar la vista <code>v_snapshot_movil</code> restaurada y reejecutar el semáforo sobre todas las solicitudes en estado <code>PENDIENTE</code> antes de procesarlas.</li>
+    <li><strong>Revisión de solicitudes en conflicto o rechazo:</strong> Revisión diaria al cierre de turno por el <strong>Encargado del Food Truck</strong>. Las solicitudes en CONFLICTO se resuelven en el momento con el comensal; las solicitudes en RECHAZADO se auditan al final del día para ajustar el stock físico y notificar a compras.</li>
+</ul>
+
+<h3>3.c Code Review de la Cursada con Inteligencia Artificial</h3>
+<p>
+Se auditaron los scripts del proyecto con el modelo de IA en modo plan/revisión, analizando tres hallazgos de alto impacto:
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:10%;">ID / U</th>
+            <th style="width:25%;">Componente Auditado</th>
+            <th style="width:27%;">Propuesta de la IA y Comprobación</th>
+            <th>Decisión Técnica y Fundamento</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>H1</strong><br>(U8)</td>
+            <td><code>movil/schema_sqlite.sql</code><br>(Tabla <code>cola_sync</code>)</td>
+            <td><strong>Propuesta:</strong> Crear <code>UNIQUE (id_local)</code>.<br><strong>Comprobación:</strong> Al probar el Caso C2, la tablet debió emitir un segundo envío tras aceptar el cliente. La inserción falló con <code>UNIQUE constraint failed</code>.</td>
+            <td><span class="badge badge-red">DESCARTADO CON FUNDAMENTO</span><br>Un borrador puede requerir reintentos. Se adoptó el índice parcial <code>CREATE UNIQUE INDEX ux_cola_una_pendiente ON cola_sync (id_local) WHERE estado = 'PENDIENTE'</code>, impidiendo colas paralelas pero permitiendo reenvíos.</td>
+        </tr>
+        <tr>
+            <td><strong>H2</strong><br>(U1/U3)</td>
+            <td><code>db/tp7_clase1_prerrequisitos.sql</code><br>(Proc. <code>sp_crear_pedido</code>)</td>
+            <td><strong>Propuesta:</strong> Usar <code>FOR UPDATE</code> en validación de stock.<br><strong>Comprobación:</strong> Con sesiones concurrentes sobre <code>stock=1</code>, sin bloqueo ambas leyeron 1 e intentaron descontar, quebrando el CHECK de stock.</td>
+            <td><span class="badge badge-green">ACEPTADO Y VERIFICADO</span><br>Se incorporó <code>SELECT stock INTO v_stock ... FOR UPDATE;</code> dentro del bloque transaccional, garantizando serializabilidad en compras concurrentes.</td>
+        </tr>
+        <tr>
+            <td><strong>H3</strong><br>(U5)</td>
+            <td><code>db/tp7_clase2_seguridad.sql</code><br>(Roles de Soporte)</td>
+            <td><strong>Propuesta:</strong> <code>GRANT SELECT ON ALL TABLES</code> para rol soporte.<br><strong>Comprobación:</strong> La tabla <code>usuario</code> guarda hashes bcrypt y teléfonos. Un GRANT ALL expone credenciales a operadores de soporte.</td>
+            <td><span class="badge badge-red">DESCARTADO CON FUNDAMENTO</span><br>Viola mínimo privilegio y la Ley 25.326. El acceso de soporte se restringe a vistas de proyección como <code>v_usuarios_publico</code> (sin contraseñas).</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    Food Store · Base de Datos II (UTN TUP) · Trabajo Práctico N.º 8 (TP10) · Hoja 1 de 3
+</div>
+
+</body>
+</html>
+"""
+
+def main():
+    print("[*] Generando archivos HTML del informe...")
+    html_tp10_path = os.path.join(TP10_DIR, "informe_tp10.html")
+    html_docs_path = os.path.join(DOCS_DIR, "informe.html")
+    
+    with open(html_tp10_path, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
+    with open(html_docs_path, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
+    print(f"    -> Guardado en {html_tp10_path} y {html_docs_path}")
+
+    # Compilar a PDF usando Edge Headless
+    edge_path = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+    if not os.path.exists(edge_path):
+        edge_path = r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"
+    
+    pdf_tp10_path = os.path.join(TP10_DIR, "informe_tp10.pdf")
+    pdf_docs_path = os.path.join(DOCS_DIR, "informe.pdf")
+
+    if os.path.exists(edge_path):
+        print(f"[*] Compilando a PDF con Edge Headless: {edge_path}")
+        cmd1 = [
+            edge_path,
+            "--headless",
+            "--disable-gpu",
+            "--run-all-compositor-stages-before-draw",
+            f"--print-to-pdf={pdf_tp10_path}",
+            html_tp10_path
+        ]
+        res1 = subprocess.run(cmd1, capture_output=True, text=True)
+        if res1.returncode == 0:
+            print(f"    [+] Generado exitosamente: {pdf_tp10_path}")
+            # Copiar a docs/informe.pdf
+            with open(pdf_tp10_path, "rb") as src, open(pdf_docs_path, "wb") as dst:
+                dst.write(src.read())
+            print(f"    [+] Copiado a la raíz de docs: {pdf_docs_path}")
+        else:
+            print(f"    [!] Error al compilar PDF: {res1.stderr}")
+    else:
+        print("[!] No se encontró el ejecutable de Microsoft Edge.")
+
+if __name__ == "__main__":
+    main()
