@@ -62,6 +62,9 @@ run_sql "$DATABASE" "sql/roles.sql"
 log_step "PASO 11: Dataset sintético anonimizado Ley 25.326 (Unidad 5 / TP7)"
 run_sql "$DATABASE" "sql/usuario_anon.sql"
 
+log_step "PASO 12: Vista de instantánea para sincronización móvil (Unidad 8 / TP10)"
+run_sql "$DATABASE" "movil/postgresql_snapshot.sql"
+
 echo -e "\n\033[1;32m======================================================================\033[0m"
 echo -e "\033[1;32m ¡RECREACIÓN INTEGRAL DE '$DATABASE' COMPLETADA CON ÉXITO!\033[0m"
 echo -e "\033[1;32m======================================================================\033[0m"

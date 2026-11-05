@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>TPI Segunda Entrega — Food Store (Base de Datos II)</title>
+<style>
+
+    @page {
+        size: A4;
+        margin: 10mm 12mm 10mm 12mm;
+    }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 8pt;
+        line-height: 1.35;
+        color: #1a202c;
+        margin: 0;
+        padding: 0;
+    }
+    .header {
+        border-bottom: 2px solid #2b6cb0;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+    .header h1 {
+        font-size: 14pt;
+        color: #2b6cb0;
+        margin: 0 0 3px 0;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+    }
+    .header .subtitle {
+        font-size: 8.5pt;
+        color: #4a5568;
+        font-weight: 600;
+    }
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3px 12px;
+        background-color: #ebf8ff;
+        border: 1px solid #bee3f8;
+        border-radius: 4px;
+        padding: 5px 10px;
+        font-size: 7.5pt;
+        margin-top: 5px;
+        color: #2c5282;
+    }
+    .meta-grid strong {
+        color: #1a365d;
+    }
+    h2 {
+        font-size: 10.5pt;
+        color: #2b6cb0;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 2px;
+        margin-top: 14px;
+        margin-bottom: 6px;
+        font-weight: 700;
+        page-break-after: avoid;
+    }
+    h3 {
+        font-size: 9pt;
+        color: #2d3748;
+        margin-top: 10px;
+        margin-bottom: 4px;
+        font-weight: 600;
+        page-break-after: avoid;
+    }
+    h4 {
+        font-size: 8.2pt;
+        color: #4a5568;
+        margin-top: 8px;
+        margin-bottom: 3px;
+        font-weight: 600;
+        page-break-after: avoid;
+    }
+    p {
+        margin: 0 0 5px 0;
+        text-align: justify;
+    }
+    ul, ol {
+        margin: 0 0 6px 0;
+        padding-left: 18px;
+    }
+    li {
+        margin-bottom: 2px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 7.2pt;
+        margin: 6px 0 8px 0;
+        page-break-inside: avoid;
+    }
+    th, td {
+        border: 1px solid #cbd5e0;
+        padding: 3px 6px;
+        text-align: left;
+    }
+    th {
+        background-color: #edf2f7;
+        color: #2d3748;
+        font-weight: 600;
+    }
+    tr:nth-child(even) td {
+        background-color: #f7fafc;
+    }
+    pre {
+        background-color: #2d3748;
+        color: #f7fafc;
+        padding: 6px 9px;
+        border-radius: 4px;
+        font-size: 6.8pt;
+        font-family: "Consolas", "Courier New", monospace;
+        line-height: 1.25;
+        overflow-x: auto;
+        margin: 5px 0 7px 0;
+        page-break-inside: avoid;
+    }
+    code {
+        font-family: "Consolas", "Courier New", monospace;
+        font-size: 7.2pt;
+        background-color: #edf2f7;
+        color: #b83280;
+        padding: 1px 3px;
+        border-radius: 3px;
+    }
+    pre code {
+        background-color: transparent;
+        color: inherit;
+        padding: 0;
+    }
+    blockquote {
+        border-left: 3px solid #3182ce;
+        background-color: #ebf8ff;
+        margin: 4px 0 6px 0;
+        padding: 4px 8px;
+        font-style: italic;
+        color: #2c5282;
+        page-break-inside: avoid;
+    }
+    .badge {
+        display: inline-block;
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 6.8pt;
+    }
+    .badge-green { background-color: #c6f6d5; color: #22543d; }
+    .badge-blue { background-color: #bee3f8; color: #2c5282; }
+    .badge-yellow { background-color: #fefcbf; color: #744210; }
+    .footer {
+        margin-top: 15px;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 4px;
+        font-size: 6.8pt;
+        color: #718096;
+        text-align: right;
+    }
+
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>FOOD STORE — PROYECTO INTEGRADOR</h1>
+        <div class="subtitle">Trabajo Práctico Integrador · Segunda Entrega Parcial (Unidades 4 a 8) · UTN TUP</div>
+        <div class="meta-grid">
+            <div><strong>Estudiante:</strong> Cristian Rodriguez (Cloverfield)</div>
+            <div><strong>Materia:</strong> Base de Datos II (Ciclo Lectivo 2026)</div>
+            <div><strong>Rama de Entrega:</strong> tpi-parcial2</div>
+            <div><strong>Motores:</strong> PostgreSQL 17.11 · MongoDB 9.0.4 · SQLite 3.50.4</div>
+        </div>
+    </div>
+    
+    <h1>TRABAJO PRÁCTICO INTEGRADOR — SEGUNDA ENTREGA PARCIAL</h1>
+<h2>Proyecto Integrador «Food Store» · Consolidación de Unidades 4 a 8</h2>
+<h3>Asignatura: Base de Datos II — Tecnicatura Universitaria en Programación (UTN)</h3>
+<p><strong>Estudiante / Integrante:</strong> Cristian Rodriguez (<code>Cloverfield</code>)  </p>
+<p><strong>Carrera:</strong> Tecnicatura Universitaria en Programación  </p>
+<p><strong>Materia:</strong> Base de Datos II · Ciclo Lectivo 2026  </p>
+<p><strong>Rama de Entrega:</strong> <code>tpi-parcial2</code>  </p>
+<p><strong>Motores de Referencia:</strong></p>
+<ul>
+<li><strong>PostgreSQL 16+ (PostgreSQL 17.11):</strong> Núcleo Transaccional ACID y Fuente de Verdad Central.</li>
+<li><strong>MongoDB 9+ (MongoDB 9.0.4 Community):</strong> Capa Documental y Lectura Agregada NoSQL.</li>
+<li><strong>SQLite 3.37+ (SQLite 3.50.4):</strong> Motor Embebido para Dispositivos Móviles en Modo <code>STRICT</code>.</li>
+</ul>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>1. Introducción y Alcance</h2>
+<p>El presente informe documenta de manera integral y verificable la <strong>segunda entrega parcial del Trabajo Práctico Integrador (TPI)</strong> correspondiente al proyecto <strong>«Food Store»</strong> en la asignatura Base de Datos II.</p>
+<p>Mientras que la primera entrega parcial consolidó los fundamentos del modelo relacional, las restricciones de integridad declarativas, las transacciones ACID, el control de concurrencia y la optimización inicial con índices B-Tree y vistas en PostgreSQL (Unidades 1 a 3), esta segunda entrega completa la <strong>capa de datos integral del proyecto</strong>. </p>
+<p>En esta etapa se acreditan de forma práctica, documentada y reproducible los conocimientos avanzados desarrollados en las <strong>Unidades 4 a 8</strong>:</p>
+<p>1. <strong>Unidad 4 · Normalización avanzada y redundancia:</strong> Refactorización de esquemas heredados con dependencias funcionales complejas hasta la Forma Normal de Boyce-Codd (FNBC), migración reversible sin pérdida (<em>lossless-join</em>) con plan de contingencia obligatorio y desnormalización controlada mediante vistas materializadas de refresco concurrente.</p>
+<p>2. <strong>Unidad 5 · Administración y seguridad:</strong> Jerarquías de roles bajo el principio de mínimo privilegio, auditoría selectiva a nivel de motor (<code>log_statement = 'mod'</code>), laboratorio de contención de incidentes de acceso indebido, funciones criptográficas (<code>pgcrypto</code>) y anonimización de datos en cumplimiento de la Ley Nacional 25.326.</p>
+<p>3. <strong>Unidad 6 · Mantenimiento y continuidad operativa:</strong> Plan preventivo de mantenimiento automatizado, volcado lógico nativo en formato <em>custom</em> (<code>pg_dump -Fc</code>), monitoreo proactivo en cuatro dimensiones de salud y simulacro contra reloj de recuperación ante desastres (<em>Disaster Recovery</em>) con medición empírica de RTO y RPO.</p>
+<p>4. <strong>Unidad 7 · NoSQL y nuevas formas de almacenamiento:</strong> Modelado documental desnormalizado en MongoDB bajo el patrón <em>Aggregate Root</em>, migración de pedidos históricos preservando granularidades y precios pactados, consultas documentales sobre datos reales y evaluación crítica de la persistencia políglota frente a PostgreSQL.</p>
+<p>5. <strong>Unidad 8 · Bases de datos móviles e integración:</strong> Arquitectura <em>Offline-First</em> para terminales móviles (tablets de Food Truck en ferias gastronómicas) basada en SQLite <code>STRICT</code>, exportación e importación de instantáneas con centavos y lápidas (<em>tombstones</em>), resolución asimétrica de conflictos mediante el algoritmo del Semáforo y code review final asistido por Inteligencia Artificial.</p>
+<p>Todas las implementaciones se sustentan en evidencias empíricas comprobables en los motores de base de datos, rigurosamente especificadas mediante la metodología Kiro (notación EARS) y gobernadas por el Protocolo Obligatorio de Uso de Inteligencia Artificial.</p>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>2. Arquitectura Integral de la Capa de Datos</h2>
+<p>El ecosistema tecnológico de Food Store resuelve los desafíos operativos, analíticos y de movilidad mediante una <strong>arquitectura de datos distribuida y políglota</strong>, donde cada motor desempeña un oficio técnico especializado sin competir entre sí:</p>
+<pre><code class="language-mermaid">flowchart TD
+    subgraph Dispositivos["Dispositivos Móviles (Offline-First)"]
+        SQLite["&lt;b&gt;SQLite 3.50+ (Tablet Food Truck)&lt;/b&gt;&lt;br/&gt;• Catálogo en caché (producto_cache)&lt;br/&gt;• Borradores locales (pedido_borrador)&lt;br/&gt;• Cola de sincronización (cola_sync)&lt;br/&gt;&lt;i&gt;Autoridad: Ninguna (Solo propone borradores)&lt;/i&gt;"]
+    end
+
+    subgraph Central["Oficina Central (Core Transaccional)"]
+        PostgreSQL["&lt;b&gt;PostgreSQL 17.11 (Fuente de Verdad)&lt;/b&gt;&lt;br/&gt;• Catálogo oficial y listas maestras&lt;br/&gt;• Gestión de stock real (ACID estricto)&lt;br/&gt;• Transacciones de venta (sp_crear_pedido)&lt;br/&gt;• Usuarios, roles y credenciales (bcrypt)&lt;br/&gt;&lt;i&gt;Autoridad: FUENTE DE VERDAD ABSOLUTA&lt;/i&gt;"]
+    end
+
+    subgraph Documental["Capa Analítica y Lectura Rápida (NoSQL)"]
+        MongoDB["&lt;b&gt;MongoDB 9+ (Modelo Documental - U7)&lt;/b&gt;&lt;br/&gt;• Colección 'pedidos' desnormalizada&lt;br/&gt;• Subtotales y agregaciones precalculadas&lt;br/&gt;• Resúmenes de facturación y cliente&lt;br/&gt;&lt;i&gt;Autoridad: Exclusiva sobre lecturas agregadas&lt;/i&gt;"]
+    end
+
+    PostgreSQL -- "1. Instantánea oficial (v_snapshot_movil)" --&gt; SQLite
+    SQLite -. "2. Solicitudes de sincronización (solicitud_uuid)" .-&gt; PostgreSQL
+    PostgreSQL -- "3. Venta confirmada y serializada" --&gt; MongoDB</code></pre>
+<h3>2.1. Matriz de Distribución de Autoridad y Responsabilidades</h3>
+<table><thead><tr><th>Motor</th><th>Rol Arquitectónico</th><th>Datos Almacenados</th><th>Autoridad Decisoria</th><th>Tecnologías Clave</th></tr></thead><tbody><tr><td><strong>PostgreSQL 17.11</strong></td><td><strong>Núcleo Transaccional Central</strong></td><td>Catálogo oficial maestro, inventario en tiempo real, clientes, pedidos formales confirmados, líneas de detalle, credenciales criptográficas y trazas de auditoría.</td><td><strong>Fuente de Verdad Única (<em>Single Source of Truth</em>)</strong>. Autoridad absoluta sobre precios vigentes, asignación de stock y confirmación de ventas bajo aislamiento ACID.</td><td>PL/pgSQL, <code>pgcrypto</code>, <code>TIMESTAMPTZ</code>, triggers diferibles, vistas materializadas.</td></tr><tr><td><strong>MongoDB 9.0.4</strong></td><td><strong>Capa Documental y Analítica</strong></td><td>Colección documental desnormalizada <code>pedidos</code>, conteniendo cabeceras, subdocumentos de clientes, arreglos de líneas con subtotales precalculados e importes totales.</td><td><strong>Autoridad delegada de lectura agregada</strong>. Optimiza dashboards y reporting de alta concurrencia sin recargar el motor OLTP relacional.</td><td>BSON, Aggregation Framework, <em>Single-Document Atomicity</em>, índices multikey.</td></tr><tr><td><strong>SQLite 3.50.4</strong></td><td><strong>Capa de Movilidad Desconectada</strong></td><td>Caché local del catálogo (<code>producto_cache</code>), borradores transitorios (<code>pedido_borrador</code>, <code>item_borrador</code>) y estados del semáforo (<code>cola_sync</code>).</td><td><strong>Sin autoridad decisoria</strong>. Libreta de trabajo desconectada que únicamente prepara borradores para someter a evaluación del servidor.</td><td>Modo <code>STRICT</code>, precios en centavos enteros (<code>INTEGER</code>), claves foráneas activas.</td></tr></tbody></table>
+<h3>2.2. La Regla de Oro: <em>"El móvil propone, el servidor dispone"</em></h3>
+<p>En ningún escenario un dispositivo periférico (tablet, terminal de comandas o panel web) tiene potestad para decrementar existencias, alterar precios de lista o auto-aprobar una venta. La tablet opera en modo desconectado armando propuestas de pedidos identificadas por <code>solicitud_uuid</code>; al restablecer el enlace de red, es <strong>PostgreSQL</strong> quien evalúa las condiciones comerciales y de inventario mediante bloqueos transaccionales pesimistas (<code>SELECT ... FOR UPDATE</code>), decidiendo si la transacción se consolida o se rechaza.</p>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>3. Elementos Implementados por Unidad (Unidades 4 a 8)</h2>
+<h3>3.1. Unidad 4 · Normalización Avanzada y Redundancia</h3>
+<ul>
+<li><strong>Refactorización FNBC:</strong> Identificación y demostración matemática de la violación de FNBC en el esquema logístico heredado <code>control_lote_almacen(lote_id, deposito_id, responsable_control_id)</code>. Descomposición en dos relaciones independientes: <code>responsable_deposito(responsable_control_id, deposito_id)</code> y <code>control_lote(lote_id, responsable_control_id)</code>.</li>
+<li><strong>Descomposición sin pérdida demostrada:</strong> Aplicación formal del Criterio de Heath demostrando que la intersección $\{responsable\_control\_id\}$ determina a $deposito\_id$, garantizando que la reunión natural $R_1 \bowtie R_2$ no produce tuplas espurias.</li>
+<li><strong>Vista de compatibilidad:</strong> Implementación de <code>v_control_lote_almacen</code> mediante un <code>JOIN</code> interno que preserva la interfaz del sistema legado con 0 diferencias en comparaciones de conjuntos (<code>EXCEPT</code>).</li>
+<li><strong>Migración transaccional y reversibilidad:</strong> Script canónico <code>db/tp_fnbc_control_lote.sql</code> ejecutado dentro de un bloque <code>BEGIN ... COMMIT</code> con sección de diagnóstico de solo lectura y plan de reversión obligatorio (<code>ROLLBACK</code>).</li>
+<li><strong>Desnormalización controlada:</strong> Creación de la vista materializada <code>mv_ventas_categoria_dia</code> en <code>db/tp_desnormalizacion_top_categorias.sql</code>, soportada por un índice único compuesto sobre <code>(fecha, categoria_id)</code> para admitir refrescos no bloqueantes (<code>REFRESH MATERIALIZED VIEW CONCURRENTLY</code>).</li>
+<li><strong>Auditoría de sincronización:</strong> Consulta de auditoría automatizada basada en <code>FULL OUTER JOIN</code> que compara diariamente los datos materializados frente al recálculo dinámico en las tablas base.</li>
+</ul>
+<h3>3.2. Unidad 5 · Administración y Seguridad</h3>
+<ul>
+<li><strong>Jerarquía de roles y mínimo privilegio:</strong> Implementación en <code>sql/roles.sql</code> de una estructura granular:</li>
+<li>Roles de grupo sin login (<code>NOLOGIN</code>): <code>rol_app_lectura</code> (vistas de catálogo sanitizadas), <code>rol_app_escritura</code> (operaciones DML controladas con revocación explícita de <code>DELETE</code> y <code>TRUNCATE</code>), <code>rol_soporte</code> (lectura proyectada a nivel de columna) y <code>rol_reportes</code> (acceso exclusivo a vistas agregadas).</li>
+<li>Identidad técnica de conexión (<code>LOGIN</code>): <code>app_web</code>, limitado a 50 conexiones concurrentes y expiración definida.</li>
+<li>Administrador de base de datos: <code>admin_datos</code> con privilegios <code>CREATEDB</code> y <code>CREATEROLE</code>, excluyendo taxativamente el atributo <code>SUPERUSER</code>.</li>
+<li><strong>Auditoría nativa del servidor:</strong> Activación y parametrización de directivas nativas del cluster en <code>sql/tp7_clase1_auditoria_servidor.sql</code>: <code>log_connections = on</code>, <code>log_disconnections = on</code> y <code>log_statement = 'mod'</code> (filtrando lecturas rutinarias y capturando mutaciones de datos y esquemas).</li>
+<li><strong>Laboratorio de incidente de acceso indebido:</strong> Reproducción controlada en <code>sql/simulacro_incidente.sql</code> de un ataque de fuerza bruta contra <code>fn_autenticar</code>, exfiltración no autorizada de la tabla <code>usuario</code> e intentos fallidos de escalamiento vertical a <code>SUPERUSER</code>.</li>
+<li><strong>Protocolo de contención inmediata:</strong> Procedimiento seguro de invalidación y restablecimiento forzado de contraseñas mediante la función PL/pgSQL <code>fn_resetear_password</code> configurada con <code>SECURITY DEFINER</code> y fijación explícita de <code>search_path = public, pg_temp</code>.</li>
+<li><strong>Protección de datos personales (Ley 25.326):</strong> Construcción del dataset sintético determinista <code>usuario_anon</code> (<code>sql/usuario_anon.sql</code>), eliminando identificadores directos (teléfonos <code>NULL</code>, contraseñas neutralizadas) y preservando métricas de cardinalidad para el trabajo analítico con asistentes de IA.</li>
+</ul>
+<h3>3.3. Unidad 6 · Mantenimiento y Resiliencia</h3>
+<ul>
+<li><strong>Especificación formal del plan (SPEC_U6):</strong> Definición de la matriz de rutinas operativas en <code>docs/tp8/SPEC_U6.md</code>, estableciendo ventanas horarias nocturnas (02:00 AM para backups, 03:00 AM para mantenimiento), condiciones de éxito y directivas de seguridad.</li>
+<li><strong>Respaldo automatizado desatendido:</strong> Scripts en PowerShell (<code>docs/tp8/backup_foodstore.ps1</code>) y Bash (<code>docs/tp8/backup_foodstore.sh</code>) que ejecutan <code>pg_dump</code> en formato <em>custom</em> (<code>-Fc</code>), compresión zlib integrada, marcas temporales <code>YYYYMMDD_HHMMSS</code> y verificación estricta de códigos de retorno sin exponer credenciales.</li>
+<li><strong>Monitoreo integral de salud:</strong> Script de diagnóstico <code>sql/health_check.sql</code> que audita cuatro dimensiones críticas: espacio ocupado por base e índices, ratio de transacciones commit vs. rollback, tuplas muertas/actividad de autovacuum y detección de bloqueos o consultas de larga duración.</li>
+<li><strong>Mantenimiento no bloqueante:</strong> Script <code>sql/maintenance.sql</code> que aplica <code>VACUUM (VERBOSE, ANALYZE)</code> sobre tablas transaccionales de alto movimiento (<code>pedido</code>, <code>detalle_pedido</code>), fundamentando técnicamente la prohibición de <code>VACUUM FULL</code>.</li>
+<li><strong>Simulacro de desastre contra reloj:</strong> Automatización del ensayo de recuperación en <code>docs/tp8/restore_test.ps1</code> sobre la base estéril <code>foodstore_restore_test</code>, midiendo métricas de RTO y RPO y ejecutando aserciones de consistencia referencial y de dominio.</li>
+</ul>
+<h3>3.4. Unidad 7 · NoSQL y Almacenamiento Documental</h3>
+<ul>
+<li><strong>Modelado documental en MongoDB:</strong> Diseño del esquema <code>pedidos</code> en la base <code>foodstore_nosql</code> bajo el patrón <em>Aggregate Root</em>, consolidando en un único documento BSON el identificador relacional original (<code>_id: NumberLong</code>), subdocumento <code>cliente</code>, arreglo de subdocumentos <code>lineas</code> con subtotales precalculados e importe <code>total</code>.</li>
+<li><strong>Migración de datos reales:</strong> Script <code>docs/tp9/consultas_mongodb.js</code> que migra de forma idempotente 5 pedidos representativos preservando precios unitarios históricos pactados y asegurando la cardinalidad mínima de ítems.</li>
+<li><strong>Consultas documentales nativas:</strong> Implementación y prueba en <code>mongosh</code> de cuatro consultas representativas: proyección general (4a), filtrado operacional por estado <code>ENTREGADO</code> (4b), búsqueda indexada en arreglos internos por <code>producto_id</code> (4c) y segmentación de consumo mediante umbrales de importe con <code>$gt</code> (4d).</li>
+<li><strong>Contraste relacional en PostgreSQL:</strong> Implementación en <code>docs/tp9/consultas_postgresql.sql</code> de las sentencias SQL equivalentes para los pedidos 1 a 5, comparando el rendimiento y la complejidad estructural de navegar subdocumentos vs. ejecutar reuniones relacionales con <code>JOIN</code> y <code>DISTINCT</code>.</li>
+</ul>
+<h3>3.5. Unidad 8 · Bases de Datos Móviles e Integración</h3>
+<ul>
+<li><strong>Modelo móvil en SQLite (Modo STRICT):</strong> Creación del esquema <code>movil/schema_sqlite.sql</code> para tablets de Food Trucks, estructurando las tablas <code>producto_cache</code>, <code>pedido_borrador</code>, <code>item_borrador</code> (precios enteros en centavos para eliminar fallas de coma flotante), <code>snapshot_servidor</code> y <code>cola_sync</code>, con verificación de claves foráneas activas (<code>PRAGMA foreign_keys = 1</code>).</li>
+<li><strong>Sincronización asimétrica:</strong> Vista receptora en PostgreSQL <code>v_snapshot_movil</code> (<code>movil/postgresql_snapshot.sql</code>) con centavos y lápidas (<em>tombstones</em> <code>eliminado = true</code>), serializada en <code>servidor_snapshot.csv</code> e importada en SQLite mediante <code>movil/snapshot_servidor.sql</code>.</li>
+<li><strong>Motor del Semáforo:</strong> Consulta evaluadora en <code>movil/semaforo.sql</code> que dictamina en tiempo real sobre solicitudes en estado <code>PENDIENTE</code>:</li>
+<li><strong>ROJO (<code>RECHAZADO</code>):</strong> Falta de stock, producto inactivo o lápida activa (precedencia absoluta).</li>
+<li><strong>AMARILLO (<code>CONFLICTO</code>):</strong> Cambio tarifario entre el catálogo visto por el cliente y el precio vigente en el servidor.</li>
+<li><strong>VERDE (<code>SIMULADO_APROBADO</code>):</strong> Coincidencia total de existencias, estado y tarifa.</li>
+<li><strong>Suite de simulación automatizada:</strong> Script <code>movil/simulador_casos.py</code> que comprueba de forma reproducible los escenarios C1 a C7: atención desconectada (C1), conflicto tarifario resuelto en mostrador (C2), quiebre de stock rechazado (C3), producto dado de baja lógica rechazado (C4), solicitud limpia aprobada (C5), idempotencia ante reintentos de red (C6) y rechazo de violaciones de integridad física en la tablet (C7).</li>
+</ul>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>4. Cobertura Explícita de los Objetivos de la Entrega</h2>
+<p>La siguiente matriz acredita el cumplimiento formal y verificable de la totalidad de los objetivos exigidos por la cátedra para la aprobación de la segunda entrega:</p>
+<table><thead><tr><th>Unidad</th><th>Requisito Exigido por la Cátedra</th><th>Componente / Script en el Repositorio</th><th>Evidencia y Verificación</th><th>Estado</th></tr></thead><tbody><tr><td><strong>U4</strong></td><td>Refactorización de esquema heredado a FNBC validada contra DFs reales.</td><td><code>db/tp_fnbc_control_lote.sql</code>&lt;br&gt;<code>docs/tp6/informe_fnbc.md</code></td><td>Demostración matemática formal de $R \rightarrow D$; clausuras $K = \{\{L,D\}, \{L,R\}\}$. Descomposición en <code>responsable_deposito</code> y <code>control_lote</code>.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U4</strong></td><td>Migración sin pérdida en transacciones reversibles con plan de reversión.</td><td><code>db/tp_fnbc_control_lote.sql</code>&lt;br&gt;<code>docs/tp6/kiro/rollback_plan.md</code></td><td>Bloque <code>BEGIN ... COMMIT</code> con <code>OVERRIDING SYSTEM VALUE</code>, validación bidireccional con <code>EXCEPT</code> (0 diferencias) y protocolo de <code>ROLLBACK</code>.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U4</strong></td><td>Decisiones de desnormalización controlada con salvaguardas documentadas.</td><td><code>db/tp_desnormalizacion_top_categorias.sql</code>&lt;br&gt;<code>docs/tp6/informe_fnbc.md</code></td><td>Vista materializada <code>mv_ventas_categoria_dia</code>, índice único, refresco concurrente y auditoría con <code>FULL OUTER JOIN</code> (0 discrepancias).</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U5</strong></td><td>Esquema de usuarios, roles y permisos bajo principio de mínimo privilegio.</td><td><code>sql/roles.sql</code>&lt;br&gt;<code>docs/tp7/verificacion_roles.md</code></td><td>6 roles jerárquicos, revocación de <code>DELETE/TRUNCATE</code>, permisos a nivel de columna para soporte y <code>admin_datos</code> sin <code>SUPERUSER</code>.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U5</strong></td><td>Auditoría de accesos/operaciones probada con simulacro y contención.</td><td><code>sql/auditoria_test.sql</code>&lt;br&gt;<code>sql/simulacro_incidente.sql</code>&lt;br&gt;<code>docs/tp7/informe_incidente.md</code></td><td>Parámetros <code>log_statement = 'mod'</code>, simulación de fuerza bruta y contención mediante <code>fn_resetear_password</code> (<code>SECURITY DEFINER</code>).</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U5</strong></td><td>Auditoría de seguridad del esquema asistida por IA con decisión humana.</td><td><code>BITACORA.md</code>&lt;br&gt;<code>docs/tp7/informe_incidente.md</code></td><td>Rechazo crítico documentado a sugerencias de la IA (<code>GRANT ALL</code>, <code>SUPERUSER</code> y reinicio destructivo del motor). Dataset <code>usuario_anon</code>.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U6</strong></td><td>Plan de mantenimiento completo automatizado y documentado.</td><td><code>docs/tp8/SPEC_U6.md</code>&lt;br&gt;<code>docs/tp8/backup_foodstore.ps1</code>&lt;br&gt;<code>sql/health_check.sql</code></td><td>Volcado diario formato <code>-Fc</code>, diagnóstico de 4 dimensiones y mantenimiento preventivo con <code>VACUUM ANALYZE</code> (veto a <code>VACUUM FULL</code>).</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U6</strong></td><td>Simulacro de desastre contra reloj con informe post-incidente y RTO/RPO.</td><td><code>docs/tp8/restore_test.ps1</code>&lt;br&gt;<code>docs/tp8/informe_u6.md</code></td><td>Restauración desatendida en 2.842 s (RTO observado) sobre base descartable, cotejo de 7 entidades con 0 discrepancias y reporte post-incidente.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U7</strong></td><td>Modelado documental en MongoDB con consultas sobre datos reales.</td><td><code>docs/tp9/consultas_mongodb.js</code>&lt;br&gt;<code>docs/tp9/informe_tp9.md</code></td><td>Colección <code>pedidos</code> en <code>foodstore_nosql</code> (patrón Aggregate Root), 5 pedidos migrados, consultas 4a a 4d ejecutadas y verificadas.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U7</strong></td><td>Comparación práctica documental vs. relacional y justificación técnica.</td><td><code>docs/tp9/consultas_postgresql.sql</code>&lt;br&gt;<code>docs/tp9/informe_tp9.md</code></td><td>Comparación lado a lado de pedidos 1..5 (coincidencia del 100%), análisis de arreglos vs. JOINs y justificación de persistencia políglota.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U8</strong></td><td>Base SQLite del dominio especificada en Kiro y generada en modo STRICT.</td><td><code>movil/schema_sqlite.sql</code>&lt;br&gt;<code>docs/tp10/kiro/requirements.md</code></td><td>Esquema SQLite <code>STRICT</code>, precios en centavos enteros (<code>INTEGER</code>), claves foráneas validadas y especificación formal en notación EARS.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U8</strong></td><td>Sincronización simulada contra servidor con resolución de conflictos.</td><td><code>movil/semaforo.sql</code>&lt;br&gt;<code>movil/simulador_casos.py</code></td><td>Algoritmo del Semáforo probado en casos C1 a C7: quiebre de stock (ROJO), cambio tarifario (AMARILLO -&gt; VERDE), lápidas e idempotencia.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>U8</strong></td><td>Code review final asistido por IA con decisiones humanas documentadas.</td><td><code>docs/tp10/informe_tp10.md</code>&lt;br&gt;<code>docs/bitacora_ia.md</code></td><td>Auditoría de 3 hallazgos críticos (H1: índice parcial en <code>cola_sync</code>, H2: <code>FOR UPDATE</code> en stock, H3: rechazo de <code>GRANT ALL</code> a soporte).</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr><tr><td><strong>Global</strong></td><td>Capa de datos completa integrada lista para defensa oral.</td><td>Repositorio completo&lt;br&gt;<code>db/tpi_parcial2_pruebas.sql</code></td><td>Integración armónica relacional + documental + móvil, suite de pruebas centralizada y bitácora consolidada.</td><td><strong><span class="badge badge-green">Acreditado</span></strong></td></tr></tbody></table>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>5. Pruebas Realizadas y Resultados Obtenidos</h2>
+<h3>5.1. Unidad 4 · Refactorización FNBC y Desnormalización</h3>
+<h4>Prueba de Descomposición sin Pérdida (Criterio de Heath)</h4>
+<p>Se comprobó la validez del Criterio de Heath sobre la base <code>bd2_tp6</code> mediante una consulta de diferencia simétrica de conjuntos sobre la vista de compatibilidad <code>v_control_lote_almacen</code>:</p>
+<pre><code class="language-sql">-- Consulta A: Tuplas presentes en la tabla original pero ausentes en la vista
+SELECT lote_id, deposito_id, responsable_control_id FROM control_lote_almacen
+EXCEPT
+SELECT lote_id, deposito_id, responsable_control_id FROM v_control_lote_almacen;
+-- Salida obtenida: 0 filas.
+
+-- Consulta B: Tuplas espurias presentes en la vista pero inexistentes en el origen
+SELECT lote_id, deposito_id, responsable_control_id FROM v_control_lote_almacen
+EXCEPT
+SELECT lote_id, deposito_id, responsable_control_id FROM control_lote_almacen;
+-- Salida obtenida: 0 filas.</code></pre>
+<ul>
+<li><strong>Resultado:</strong> La reunión natural de las tablas descompuestas recupera con exactitud matemática la totalidad de las tuplas originales, sin pérdidas ni tuplas espurias.</li>
+</ul>
+<h4>Medición Comparativa de Desnormalización mediante <code>EXPLAIN (ANALYZE, BUFFERS)</code></h4>
+<p>Se midió el tiempo de respuesta del ranking de ventas por categoría para la fecha <code>2026-10-25</code> comparando la consulta sobre tablas base normalizadas frente a la lectura de la vista materializada <code>mv_ventas_categoria_dia</code>:</p>
+<table><thead><tr><th>Métrica</th><th>Consulta Original Normalizada 5.2(a)</th><th>Vista Materializada Desnormalizada 5.2(d)</th><th>Impacto Observado</th></tr></thead><tbody><tr><td><strong>Tiempo de Planificación</strong></td><td>0,475 ms</td><td>0,102 ms</td><td>Reducción del 78,5%</td></tr><tr><td><strong>Tiempo de Ejecución</strong></td><td><strong>58,419 ms</strong></td><td><strong>0,036 ms</strong></td><td><strong>Reducción del 99,94%</strong></td></tr><tr><td><strong>Lectura de Memoria (Buffers)</strong></td><td><code>shared hit = 4172</code></td><td><code>shared hit = 5</code></td><td>Reducción del 99,88%</td></tr><tr><td><strong>Nodos Dominantes del Plan</strong></td><td><code>Parallel Hash Join</code> + <code>Parallel Seq Scan</code></td><td><code>Index Scan</code> sobre índice único</td><td>Acceso directo indexado</td></tr></tbody></table>
+<ul>
+<li><strong>Resultado:</strong> La vista materializada reduce el tiempo de ejecución en más de tres órdenes de magnitud (de 58,4 ms a 36 microsegundos), transformando una agregación intensiva en disco en una lectura puntual en memoria caché.</li>
+</ul>
+<h4>Auditoría de Sincronización de la Vista Materializada</h4>
+<p>Se ejecutó la consulta de auditoría con <code>FULL OUTER JOIN</code> para comparar las 366 fechas registradas en el histórico:</p>
+<pre><code class="language-text"> grupos_base | grupos_vista | discrepancias |   estado_control   | duplicados_fecha_cat
+-------------+--------------+---------------+--------------------+----------------------
+         366 |          366 |             0 | SIN_DISCREPANCIAS  |                    0</code></pre>
+<ul>
+<li><strong>Resultado:</strong> Cero discrepancias en importes o fechas, confirmando la coherencia entre las tablas transaccionales base y la capa desnormalizada.</li>
+</ul>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h3>5.2. Unidad 5 · Seguridad, Auditoría y Contención de Incidentes</h3>
+<h4>Comprobación de Mínimo Privilegio en Catálogo</h4>
+<p>Se inspeccionó el catálogo de roles del cluster mediante la consulta:</p>
+<pre><code class="language-sql">SELECT rolname, rolsuper, rolcreaterole, rolcreatedb, rolcanlogin, rolconnlimit 
+FROM pg_roles 
+WHERE rolname IN ('app_web', 'admin_datos', 'rol_app_escritura', 'rol_soporte');</code></pre>
+<ul>
+<li><strong>Resultado:</strong></li>
+<li><code>app_web</code>: Posee <code>LOGIN</code>, límite estricto de 50 conexiones concurrentes, membresía en <code>rol_app_lectura</code> y <code>rol_app_escritura</code>.</li>
+<li><code>admin_datos</code>: Posee <code>CREATEDB</code> y <code>CREATEROLE</code>, pero <code>rolsuper = false</code>, impidiendo eludir la auditoría del motor.</li>
+<li>Comprobación sobre <code>information_schema.role_table_grants</code>: Cero privilegios de <code>DELETE</code> o <code>TRUNCATE</code> para <code>app_web</code> o <code>rol_app_escritura</code>.</li>
+</ul>
+<h4>Simulacro de Acceso Indebido y Protocolo de Contención</h4>
+<p>A partir de la traza de auditoría capturada en <code>log_simulacro_anonimizado.txt</code>, se constató:</p>
+<p>1. Una ráfaga de 340 llamadas fallidas a <code>fn_autenticar</code> provenientes de la IP <code>198.51.100.42</code>.</p>
+<p>2. Una autenticación exitosa sobre la cuenta del usuario 1 (<code>admin@foodstore.com</code>).</p>
+<p>3. Intentos de escalamiento vertical ejecutando <code>GRANT admin_datos TO app_web;</code> y <code>ALTER ROLE app_web SUPERUSER;</code>.</p>
+<p>4. <strong>Resistencia del motor:</strong> Ambos intentos de escalamiento fueron <strong>rechazados por el motor</strong> con errores <code>permission denied</code> y <code>must be superuser</code>.</p>
+<p>5. <strong>Acción de contención ejecutada:</strong> Se probó exitosamente el reseteo forzado de credenciales mediante:</p>
+<pre><code class="language-sql">   SELECT fn_resetear_password(1, 'PwdEmergenciaContencion2026!#');</code></pre>
+<p>   inhabilitando la sesión comprometida sin reiniciar el motor ni afectar la disponibilidad del servicio.</p>
+<h4>Equivalencia Analítica del Dataset Anonimizado (<code>usuario_anon</code>)</h4>
+<p>Se ejecutaron consultas de agregación sobre <code>usuario</code> (producción) y <code>usuario_anon</code> (anonimizada para IA):</p>
+<pre><code class="language-text">==================================================================================================
+RESULTADO: usuario (Tabla Real)
+ origen_datos |   rol   | mes_alta | total_usuarios | total_emails_unicos
+--------------+---------+----------+----------------+---------------------
+ usuario_real | ADMIN   | 2026-11  |              1 |                   1
+ usuario_real | USUARIO | 2026-11  |              2 |                   2
+
+==================================================================================================
+RESULTADO: usuario_anon (Tabla Anonimizada)
+ origen_datos |   rol   | mes_alta | total_usuarios | total_emails_unicos
+--------------+---------+----------+----------------+---------------------
+ usuario_anon | ADMIN   | 2026-11  |              1 |                   1
+ usuario_anon | USUARIO | 2026-11  |              2 |                   2</code></pre>
+<ul>
+<li><strong>Resultado:</strong> Se verifica equivalencia estadística perfecta (100% de coincidencia en distribución temporal y conteos únicos), preservando los datos personales conforme a la Ley 25.326.</li>
+</ul>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h3>5.3. Unidad 6 · Continuidad Operativa y Simulacro de Desastre</h3>
+<h4>Métricas de Continuidad: RTO y RPO Observados</h4>
+<p>El ensayo contra reloj de recuperación ante desastres fue ejecutado mediante <code>restore_test.ps1</code> sobre la base descartable <code>foodstore_restore_test</code>, arrojando los siguientes resultados:</p>
+<table><thead><tr><th>Métrica</th><th>Definición Operativa</th><th>Meta del SLA de Food Store</th><th>Valor Real Cronometrado</th><th>Evaluación</th></tr></thead><tbody><tr><td><strong>RTO</strong> <em>(Recovery Time Objective)</em></td><td>Tiempo total cronometrado desde la declaración del desastre hasta el restablecimiento y validación completa de la base.</td><td><strong>&lt; 15 minutos</strong></td><td><strong>2,842 segundos</strong></td><td><strong>SLA Superado Ampliamente</strong> (recuperación casi instantánea).</td></tr><tr><td><strong>RPO</strong> <em>(Recovery Point Objective)</em></td><td>Máxima antigüedad admisible de la información respaldada frente al momento del incidente.</td><td><strong>&lt; 24 horas</strong> (backup nocturno)</td><td><strong>~15 minutos</strong> (antigüedad real del <code>.dump</code>)</td><td><strong>SLA Cumplido con Holgura</strong> (pérdida potencial mínima).</td></tr></tbody></table>
+<h4>Verificación de Integridad Referencial y de Dominio Post-Restauración</h4>
+<p>Tras aplicar <code>pg_restore --no-owner --no-privileges</code>, se cotejaron las entidades principales y las restricciones de integridad:</p>
+<table><thead><tr><th>Entidad / Restricción de Dominio</th><th>Registros Esperados (<code>foodstore</code>)</th><th>Registros Restaurados (<code>restore_test</code>)</th><th>Discrepancia</th><th>Estado</th></tr></thead><tbody><tr><td><code>categoria</code></td><td>10</td><td>10</td><td>0</td><td><strong><span class="badge badge-green">Válido</span></strong></td></tr><tr><td><code>cliente</code></td><td>100</td><td>100</td><td>0</td><td><strong><span class="badge badge-green">Válido</span></strong></td></tr><tr><td><code>producto</code></td><td>500</td><td>500</td><td>0</td><td><strong><span class="badge badge-green">Válido</span></strong></td></tr><tr><td><code>pedido</code></td><td>1.250</td><td>1.250</td><td>0</td><td><strong><span class="badge badge-green">Válido</span></strong></td></tr><tr><td><code>detalle_pedido</code></td><td>3.420</td><td>3.420</td><td>0</td><td><strong><span class="badge badge-green">Válido</span></strong></td></tr><tr><td><strong>Productos inválidos</strong> (<code>precio &lt; 0 OR stock &lt; 0</code>)</td><td><strong>0</strong></td><td><strong>0</strong></td><td>0</td><td><strong><span class="badge badge-green">Consistente</span></strong></td></tr><tr><td><strong>Detalles inválidos</strong> (<code>cantidad &lt;= 0 OR precio &lt; 0</code>)</td><td><strong>0</strong></td><td><strong>0</strong></td><td>0</td><td><strong><span class="badge badge-green">Consistente</span></strong></td></tr></tbody></table>
+<ul>
+<li><strong>Resultado:</strong> Integridad al 100% sin registros corruptos ni violaciones de claves foráneas.</li>
+</ul>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h3>5.4. Unidad 7 · Persistencia NoSQL y Contraste Relacional</h3>
+<h4>Consultas Documentales en MongoDB Shell (<code>mongosh</code>)</h4>
+<p>Sobre la colección <code>foodstore_nosql.pedidos</code> con 5 pedidos migrados:</p>
+<ul>
+<li><strong>Consulta 4a (Listado general):</strong> Devolvió los 5 documentos serializados con estados <code>ENTREGADO</code>, <code>PENDIENTE</code> y <code>CONFIRMADO</code>.</li>
+<li><strong>Consulta 4b (Filtrado por estado <code>ENTREGADO</code>):</strong> Recuperó 3 pedidos coincidentes (IDs <code>[1, 3, 4]</code>).</li>
+<li><strong>Consulta 4c (Búsqueda en arreglo por <code>producto_id: 1</code>):</strong> Recuperó 3 pedidos (IDs <code>[1, 3, 4]</code>) examinando el arreglo embebido <code>lineas</code> sin requerir joins de red.</li>
+<li><strong>Consulta 4d (Ticket &gt; \$10.000):</strong> Recuperó 2 pedidos de alto impacto económico: Pedido 3 (\$11.000) y Pedido 4 (\$16.500).</li>
+</ul>
+<h4>Tabla Comparativa de Resultados Lado a Lado (PostgreSQL vs. MongoDB)</h4>
+<p>Se ejecutaron las consultas SQL equivalentes en PostgreSQL sobre el lote testigo (<code>id_pedido BETWEEN 1 AND 5</code>):</p>
+<table><thead><tr><th>Filtro Evaluado</th><th>Registros en PostgreSQL</th><th>Identificadores PostgreSQL</th><th>Documentos en MongoDB</th><th>Identificadores MongoDB</th><th>¿Coincidencia Exacta?</th></tr></thead><tbody><tr><td><strong>Estado = 'ENTREGADO'</strong></td><td><strong>3</strong></td><td><code>[1, 3, 4]</code></td><td><strong>3</strong></td><td><code>[1, 3, 4]</code></td><td><strong><span class="badge badge-green">SÍ (100%)</span></strong></td></tr><tr><td><strong>Contiene Producto ID = 1</strong></td><td><strong>3</strong></td><td><code>[1, 3, 4]</code></td><td><strong>3</strong></td><td><code>[1, 3, 4]</code></td><td><strong><span class="badge badge-green">SÍ (100%)</span></strong></td></tr></tbody></table>
+<ul>
+<li><strong>Diferencia técnica detectada:</strong> Para resolver la búsqueda por producto, en MongoDB se consultó directamente el arreglo interno mediante <code>{ "lineas.producto_id": 1 }</code> en una sola lectura de disco. En PostgreSQL fue indispensable aplicar <code>JOIN</code> entre <code>pedido</code> y <code>detalle_pedido</code> acompañado de <code>DISTINCT</code>, a fin de colapsar las múltiples líneas coincidentes en una única fila de salida.</li>
+</ul>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h3>5.5. Unidad 8 · Dispositivos Móviles y Sincronización con Semáforo</h3>
+<h4>Verificación de Integridad en SQLite (<code>movil/ejecutar_pruebas.py</code>)</h4>
+<p>Se ejecutaron las pruebas unitarias sobre <code>movil/foodstore_movil.db</code>:</p>
+<pre><code class="language-text">[*] PRAGMA foreign_keys = 1 (Activado)
+[OK] C7.a Rechazado correctamente por restricción CHECK: cantidad &gt; 0
+[OK] C7.b Rechazado correctamente por restricción FOREIGN KEY (producto inexistente)
+[+] Todas las pruebas de la Consigna 1 fueron completadas con éxito.</code></pre>
+<h4>Simulación Automatizada del Semáforo (<code>movil/simulador_casos.py</code>)</h4>
+<p>La suite de simulación ejecutó los 5 escenarios de integración móvil con el servidor:</p>
+<p>1. <strong>Caso C2 (Conflicto tarifario):</strong> Solicitud inicial con precio visto de \$9.000 fue marcada como <strong><code>CONFLICTO</code></strong> por aumento tarifario a \$10.500 en el servidor. Tras aceptar el cliente la nueva tarifa en mostrador, el segundo envío se evaluó como <strong><code>SIMULADO_APROBADO</code></strong>.</p>
+<p>2. <strong>Caso C3 (Quiebre de stock):</strong> Intento de venta de 20 unidades con solo 8 disponibles en servidor fue evaluado de inmediato como <strong><code>RECHAZADO</code></strong>, alertando al operario del Food Truck y protegiendo el stock real.</p>
+<p>3. <strong>Caso C4 (Baja lógica por lápida activa):</strong> Producto con <code>eliminado = 't'</code> en el snapshot fue marcado como <strong><code>RECHAZADO</code></strong>. La vista <code>v_catalogo_disponible</code> de la tablet lo ocultó de la interfaz de venta sin romper claves foráneas de borradores históricos en <code>producto_cache</code>.</p>
+<p>4. <strong>Caso C5 (Solicitud limpia):</strong> Pedido por 2 unidades con precio y stock vigentes evaluado como <strong><code>SIMULADO_APROBADO</code></strong>.</p>
+<p>5. <strong>Caso C6 (Idempotencia y reintentos de red):</strong> El reenvío del mismo <code>solicitud_uuid</code> fue rechazado en SQLite por restricción de Primary Key y contenido sin duplicación de ventas.</p>
+<p>6. <strong>Invariabilidad central:</strong> Se comprobó mediante <code>SELECT COUNT(*) FROM pedido</code> y <code>SELECT SUM(stock) FROM producto</code> en PostgreSQL que ninguna operación del semáforo ni de la tablet alteró el inventario productivo.</p>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>6. Decisiones de Diseño y Arquitectura de Datos</h2>
+<h3>6.1. Refactorización FNBC: Beneficios vs. Pérdida de Preservación de Dependencias</h3>
+<p>Al descomponer <code>control_lote_almacen</code> en <code>responsable_deposito</code> y <code>control_lote</code>, se resolvió la violación provocada por $R \rightarrow D$. </p>
+<ul>
+<li><strong>Decisión adoptada:</strong> Se priorizó alcanzar FNBC para eliminar las tres anomalías destructivas del ciclo de vida (no poder registrar un responsable sin lote, borrar un lote y perder la radicación del responsable, o actualizar erróneamente su depósito).</li>
+<li><strong>Compromiso asumido:</strong> Se aceptó que la dependencia funcional $\{L, D\} \rightarrow R$ no queda preservada por restricciones de clave primaria en el esquema descompuesto. Para salvaguardar esta regla de negocio, se diseñó la consulta diagnóstica de pares $(L, D)$ duplicados y se mantuvo la vista de compatibilidad <code>v_control_lote_almacen</code>.</li>
+</ul>
+<h3>6.2. Desnormalización Controlada mediante Vista Materializada vs. Triggers</h3>
+<p>Para acelerar el cálculo diario de ventas por categoría, se evaluaron dos alternativas:</p>
+<p>1. <em>Columna precalculada <code>subtotal</code> con triggers sobre <code>detalle_pedido</code>.</em></p>
+<p>2. <em>Vista materializada <code>mv_ventas_categoria_dia</code> con índice único y refresco concurrente.</em></p>
+<ul>
+<li><strong>Decisión adoptada:</strong> Se adoptó la <strong>vista materializada</strong>. Una columna con trigger solo ahorra la multiplicación escalar de cada ítem, pero obliga al motor a realizar las cuatro reuniones relacionales masivas en cada consulta analítica. La vista materializada almacena directamente el total agrupado por día y categoría, reduciendo el costo de 4.172 lecturas de buffers a solo 5.</li>
+<li><strong>Salvaguardas implementadas:</strong> Las tablas base continúan como única fuente de verdad; la vista es un dato derivado reversible que puede eliminarse sin pérdida; y su sincronización se audita periódicamente mediante <code>FULL OUTER JOIN</code>.</li>
+</ul>
+<h3>6.3. Modelo de Seguridad y Mínimo Privilegio (Veto a <code>SUPERUSER</code>)</h3>
+<ul>
+<li><strong>Decisión adoptada:</strong> Se prohibió terminantemente conceder <code>SUPERUSER</code> a la identidad de la aplicación web (<code>app_web</code>) o al administrador de base de datos (<code>admin_datos</code>).</li>
+<li><strong>Fundamento técnico:</strong> El superusuario de PostgreSQL ignora todas las verificaciones de permisos del catálogo y desactiva las políticas de Row-Level Security (RLS). Ante una inyección de SQL en la capa de software, una conexión con superusuario permite al atacante ejecutar funciones de sistema (<code>pg_read_file</code>, <code>COPY TO PROGRAM</code>) y tomar el control del servidor. El rol <code>admin_datos</code> se configuró con <code>CREATEDB</code> y <code>CREATEROLE</code>, canalizando sus acciones bajo trazabilidad estricta.</li>
+</ul>
+<h3>6.4. Persistencia Políglota: Convivencia de PostgreSQL y MongoDB</h3>
+<ul>
+<li><strong>Decisión adoptada:</strong> Rechazar la recomendación de "migrar todo a MongoDB" o "quedarse solo con relacional", implementando un esquema políglota coordinado.</li>
+<li><strong>Fundamento técnico:</strong></li>
+<li>La creación de pedidos, el descuento de stock bajo concurrencia y la conciliación financiera exigen <strong>aislamiento ACID estricto</strong> y garantías declarativas provistas por PostgreSQL.</li>
+<li>La visualización de pedidos históricos y paneles de monitoreo masivo para despacho se benefician de la <strong>atomicidad a nivel de documento único</strong> de MongoDB, evitando joins repetitivos en lecturas intensivas.</li>
+</ul>
+<h3>6.5. Sincronización Móvil <em>Offline-First</em> y Representación en Centavos Enteros</h3>
+<ul>
+<li><strong>Decisión adoptada:</strong> Almacenar los importes monetarios en la tablet como enteros de centavos (<code>precio_centavos INTEGER</code>) y adoptar una arquitectura asimétrica (<em>"el móvil propone, el servidor dispone"</em>).</li>
+<li><strong>Fundamento técnico:</strong> Los tipos de coma flotante (<code>REAL</code> / <code>FLOAT</code>) en bases de datos embebidas introducen inconsistencias de redondeo binario inadmisibles en liquidaciones comerciales. El almacenamiento en centavos enteros garantiza precisión exacta en transacciones desconectadas.</li>
+</ul>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>7. Gobernanza de Inteligencia Artificial (Bitácora y DUIA)</h2>
+<p>A lo largo de las Unidades 4 a 8 se aplicó el <strong>Protocolo Obligatorio de Uso de IA sobre Datos</strong>, utilizando asistentes inteligentes (Kiro para especificación EARS, Antigravity / OpenCode para generación de borradores y revisión técnica).</p>
+<p>Ninguna propuesta fue incorporada a ciegas. A continuación se resumen los principales casos donde la IA propuso soluciones técnicamente defectuosas o inseguras, documentando la corrección humana aplicada:</p>
+<h3>7.1. Registro Crítico de Desvíos de la IA y Correcciones Humanas</h3>
+<table><thead><tr><th>Unidad</th><th>Tarea Solicitada a la IA</th><th>Propuesta Defectuosa de la IA</th><th>Verificación en Motor / Riesgo Detectado</th><th>Decisión y Corrección Humana Aplicada</th></tr></thead><tbody><tr><td><strong>U5</strong></td><td>Definición de permisos para <code>rol_soporte</code>.</td><td>Otorgar <code>GRANT SELECT ON ALL TABLES IN SCHEMA public TO rol_soporte;</code>.</td><td>La tabla <code>usuario</code> almacena hashes criptográficos (<code>crypt</code>) y teléfonos personales. <code>GRANT ALL</code> expondría datos sensibles de administradores.</td><td><strong>DESCARTADO CON FUNDAMENTO.</strong> Violación del principio de mínimo privilegio y Art. 9 de la Ley 25.326. Se implementaron vistas proyectadas (<code>v_usuarios_publico</code>) y permisos granulares a nivel de columna.</td></tr><tr><td><strong>U5</strong></td><td>Reconstrucción del log de acceso indebido.</td><td>Afirmó que el atacante "obtuvo control total del cluster" y propuso reiniciar el motor y otorgar superusuario para reparar.</td><td>Al revisar el log real, las instrucciones <code>GRANT admin_datos</code> y <code>ALTER ROLE app_web SUPERUSER</code> terminaron en <code>ERROR: permission denied</code>. El motor había contenido el ataque.</td><td><strong>RECHAZADO Y CORREGIDO.</strong> La IA no leyó los códigos de error. Se mantuvo el servicio disponible y se contuvo la cuenta filtrada mediante la función segura <code>fn_resetear_password</code>.</td></tr><tr><td><strong>U5</strong></td><td>Anonimización de la tabla <code>usuario</code>.</td><td>Reemplazar todos los nombres por <code>'Anonimo'</code> y correos por <code>'anonimo@ejemplo.com'</code>.</td><td>Al asignar un literal constante idéntico a todas las filas, se destruyen las estadísticas de cardinalidad (<code>COUNT(DISTINCT mail)</code> pasa de miles a 1).</td><td><strong>CORREGIDO.</strong> Se implementó el patrón sintético determinista `'Usuario ' \</td><td>\</td><td>id<code> y </code>'usuario' \</td><td>\</td><td>id \</td><td>\</td><td>'@ejemplo.test'`, preservando la cardinalidad analítica exacta.</td></tr><tr><td><strong>U6</strong></td><td>Mantenimiento preventivo dominical.</td><td>Programar semanalmente <code>VACUUM FULL ANALYZE</code> sobre todas las tablas de <code>foodstore</code>.</td><td><code>VACUUM FULL</code> adquiere un bloqueo exclusivo total (<code>AccessExclusiveLock</code>), cortando el servicio y exigiendo duplicar el espacio libre en disco.</td><td><strong>VETO TÉCNICO ENÉRGICO.</strong> Se sustituyó por <code>VACUUM (VERBOSE, ANALYZE)</code> no bloqueante, reutilizando el espacio en el FSM y actualizando estadísticas sin downtime.</td></tr><tr><td><strong>U6</strong></td><td>Automatización de backups en PowerShell.</td><td>Hardcodear credenciales en el script asignando <code>$env:PGPASSWORD = "admin"</code>.</td><td>Vulneración directa de las políticas de seguridad del proyecto y exposición de secretos en el repositorio versionado.</td><td><strong>RECHAZADO.</strong> Se eliminó toda credencial en texto plano, delegando la autenticación en variables efímeras seguras o en el archivo de permisos protegidos <code>~/.pgpass</code> (<code>0600</code>).</td></tr><tr><td><strong>U7</strong></td><td>Comparación PostgreSQL vs. MongoDB.</td><td>Afirmó que "en MongoDB no hay garantías de integridad ni atomicidad" y que "MongoDB es categóricamente más rápido".</td><td>La documentación oficial avala la <em>Single-Document Atomicity</em> en documentos embebidos. En lectura puntual, los índices B-Tree de PostgreSQL en memoria igualan o superan lecturas no cacheadas.</td><td><strong>REFUTADO TÉCNICAMENTE.</strong> Se justificó la persistencia políglota, combinando la consistencia relacional OLTP con la agilidad de lectura agregada documental.</td></tr><tr><td><strong>U8</strong></td><td>Restricción de unicidad en cola de sincronización.</td><td>Crear un índice <code>UNIQUE (id_local)</code> sobre la tabla <code>cola_sync</code> en SQLite.</td><td>Al probar el caso C2 (conflicto tarifario resuelto), la tablet debió generar un segundo envío para el mismo borrador. La sugerencia de la IA abortó la operación con <code>IntegrityError</code>.</td><td><strong>DESCARTADO CON FUNDAMENTO.</strong> Un mismo borrador puede requerir múltiples intentos de envío. Se reemplazó por el índice parcial condicional <code>CREATE UNIQUE INDEX ux_cola_una_pendiente ON cola_sync (id_local) WHERE estado = 'PENDIENTE'</code>.</td></tr><tr><td><strong>U8</strong></td><td>Control de concurrencia en ventas simultáneas.</td><td>Utilizar una lectura simple de stock dentro del procedimiento <code>sp_crear_pedido</code>.</td><td>En pruebas concurrentes con dos sesiones sobre la última unidad (<code>stock = 1</code>), ambas leyeron <code>1</code> e intentaron descontar, generando condiciones de carrera.</td><td><strong>ACEPTADO Y VERIFICADO.</strong> Se incorporó <code>SELECT stock INTO v_stock ... FOR UPDATE;</code> dentro del procedimiento transaccional para forzar la serialización del inventario.</td></tr></tbody></table>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h3>7.2. Declaración de Uso de Inteligencia Artificial (DUIA)</h3>
+<p><strong>Asignatura:</strong> Base de Datos II — Tecnicatura Universitaria en Programación (UTN)  </p>
+<p><strong>Proyecto:</strong> Food Store · Trabajo Práctico Integrador — Segunda Entrega Parcial  </p>
+<p><strong>Estudiante:</strong> Cristian Rodriguez (<code>Cloverfield</code>)  </p>
+<p>1. <strong>Responsabilidad Intelectual y Autoría:</strong>  </p>
+<p>   Declaro bajo compromiso de honor que la totalidad de los esquemas DDL, funciones PL/pgSQL, consultas analíticas, scripts de automatización en PowerShell/Bash, modelos documentales en MongoDB, esquemas SQLite y análisis conceptuales presentados en este informe han sido formulados, analizados línea por línea, comprendidos cabalmente y probados experimentalmente por el autor. Asumo la responsabilidad técnica integral de cada decisión y me encuentro plenamente capacitado para defenderla en la instancia de evaluación oral.</p>
+<p>2. <strong>Rol de los Asistentes Inteligentes:</strong>  </p>
+<p>   Las herramientas de IA (Google Antigravity, OpenCode, Kiro) fueron empleadas exclusivamente como asistentes de redacción de especificaciones en notación formal EARS, soporte para generación de borradores iniciales de código y agentes de revisión cruzada de código (<em>code review</em>).</p>
+<p>3. <strong>Criterio de Validación Empírica:</strong>  </p>
+<p>   Ninguna propuesta emitida por un modelo de lenguaje fue aceptada de manera automática. Cada instrucción fue sometida a escrutinio en el motor respectivo (PostgreSQL 17.11, MongoDB 9.0.4 o SQLite 3.50.4), vetando y descartando con rigor fundado aquellas sugerencias que comprometían la seguridad, violaban la Ley 25.326 o degradaban la disponibilidad del cluster.</p>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>8. Conclusiones y Preparación para la Defensa Oral</h2>
+<p>La finalización de la segunda entrega parcial del Trabajo Práctico Integrador «Food Store» consolida con éxito la <strong>capa de datos completa, moderna y resiliente del proyecto</strong>:</p>
+<ul>
+<li><strong>Rigor en el modelado:</strong> La refactorización a FNBC y la desnormalización controlada demostraron que la normalización matemática y la optimización analítica no son opuestas, sino herramientas complementarias que un administrador de base de datos aplica estratégicamente según el perfil de carga del sistema.</li>
+<li><strong>Seguridad y privacidad por diseño:</strong> El cluster de base de datos se encuentra blindado bajo defensa en profundidad (aislamiento de roles, revocación de facultades destructivas, parámetros de auditoría calibrados, funciones <code>SECURITY DEFINER</code> protegidas y anonimización estricta bajo la Ley 25.326).</li>
+<li><strong>Resiliencia operativa:</strong> Food Store cuenta con un Plan de Recuperación ante Desastres (DRP) automatizado, probado y documentado, con un RTO demostrado de 2,84 segundos y RPO inferior a 15 minutos.</li>
+<li><strong>Flexibilidad políglota y movilidad:</strong> La integración de PostgreSQL como núcleo transaccional, MongoDB como motor documental analítico y SQLite como nodo de sincronización móvil offline-first bajo la Regla de Oro (<em>"el móvil propone, el servidor dispone"</em>) dota al negocio de la capacidad de operar en cualquier escenario comercial, inclusive en ferias gastronómicas sin conexión de red.</li>
+<li><strong>Madurez y pensamiento crítico frente a la IA:</strong> Las intervenciones documentadas en la bitácora ratifican que el criterio humano, respaldado por la validación empírica en el motor, es insustituible para evitar catástrofes de seguridad o caídas de servicio causadas por recomendaciones automatizadas.</li>
+</ul>
+<p>El proyecto se encuentra versionado en Git, respaldado por suites de prueba reproducibles y listo para su defensa oral individual.</p>
+<hr style='border: none; border-top: 1px solid #cbd5e0; margin: 10px 0;'>
+<h2>9. Inventario de Evidencias y Referencias del Repositorio</h2>
+<p>La siguiente tabla compila la ubicación exacta de los artefactos que respaldan de manera verificable los resultados documentados en este informe:</p>
+<table><thead><tr><th>Módulo / Unidad</th><th>Descripción del Entregable</th><th>Archivo en el Repositorio</th></tr></thead><tbody><tr><td><strong>Pruebas Integradas</strong></td><td><strong>Suite Central de Pruebas Reproducibles TPI 2 (U4 a U8)</strong></td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>db/tpi_parcial2_pruebas.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/db/tpi_parcial2_pruebas.sql)</td></tr><tr><td><strong>Gobernanza / IA</strong></td><td><strong>Bitácora Consolidada de Interacciones Críticas con IA</strong></td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tpi_parcial2/bitacora_ia_consolidada.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tpi_parcial2/bitacora_ia_consolidada.md)</td></tr><tr><td><strong>Gobernanza / IA</strong></td><td><strong>Declaración de Uso de Inteligencia Artificial (DUIA Oficial)</strong></td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tpi_parcial2/DUIA.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tpi_parcial2/DUIA.md)</td></tr><tr><td><strong>Guía de Entrega</strong></td><td><strong>README Guía de Ejecución y Reproducción del TPI 2</strong></td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tpi_parcial2/README.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tpi_parcial2/README.md)</td></tr><tr><td><strong>Unidad 4 (FNBC)</strong></td><td>Script canónico de refactorización y migración reversible</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>db/tp_fnbc_control_lote.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/db/tp_fnbc_control_lote.sql)</td></tr><tr><td><strong>Unidad 4 (Desnorm)</strong></td><td>Script canónico de vista materializada y auditoría de sincronización</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>db/tp_desnormalizacion_top_categorias.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/db/tp_desnormalizacion_top_categorias.sql)</td></tr><tr><td><strong>Unidad 4 (Kiro)</strong></td><td>Especificaciones Kiro y Plan de Reversión Obligatorio</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp6/kiro/requirements.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp6/kiro/requirements.md), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>design.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp6/kiro/design.md), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>rollback_plan.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp6/kiro/rollback_plan.md)</td></tr><tr><td><strong>Unidad 5 (Seguridad)</strong></td><td>DDL de roles jerárquicos y privilegios mínimos</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>sql/roles.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/sql/roles.sql)</td></tr><tr><td><strong>Unidad 5 (Auditoría)</strong></td><td>Script de prueba de auditoría nativa</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>sql/auditoria_test.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/sql/auditoria_test.sql)</td></tr><tr><td><strong>Unidad 5 (Incidente)</strong></td><td>Script de simulacro de acceso indebido e informe de contención</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>sql/simulacro_incidente.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/sql/simulacro_incidente.sql), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp7/informe_incidente.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp7/informe_incidente.md)</td></tr><tr><td><strong>Unidad 5 (Anon)</strong></td><td>Dataset anonimizado determinista (Ley 25.326)</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>sql/usuario_anon.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/sql/usuario_anon.sql)</td></tr><tr><td><strong>Unidad 6 (Plan DRP)</strong></td><td>Especificación del plan de mantenimiento y ventanas operativas</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp8/SPEC_U6.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp8/SPEC_U6.md)</td></tr><tr><td><strong>Unidad 6 (Backup)</strong></td><td>Scripts automatizados de respaldo custom (<code>-Fc</code>)</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp8/backup_foodstore.ps1</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp8/backup_foodstore.ps1), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>backup_foodstore.sh</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp8/backup_foodstore.sh)</td></tr><tr><td><strong>Unidad 6 (Salud)</strong></td><td>Monitoreo proactivo en 4 dimensiones y mantenimiento preventivo</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>sql/health_check.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/sql/health_check.sql), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>sql/maintenance.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/sql/maintenance.sql)</td></tr><tr><td><strong>Unidad 6 (Restore)</strong></td><td>Automatización del simulacro de recuperación e informe post-incidente</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp8/restore_test.ps1</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp8/restore_test.ps1), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp8/informe_u6.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp8/informe_u6.md)</td></tr><tr><td><strong>Unidad 7 (NoSQL)</strong></td><td>Script de migración y consultas documentales en MongoDB</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp9/consultas_mongodb.js</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp9/consultas_mongodb.js)</td></tr><tr><td><strong>Unidad 7 (Contraste)</strong></td><td>Consultas equivalentes en PostgreSQL e informe comparativo</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp9/consultas_postgresql.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp9/consultas_postgresql.sql), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>docs/tp9/informe_tp9.md</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/docs/tp9/informe_tp9.md)</td></tr><tr><td><strong>Unidad 8 (SQLite)</strong></td><td>Esquema SQLite STRICT y pruebas de integridad offline</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>movil/schema_sqlite.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/movil/schema_sqlite.sql), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>movil/pruebas_sqlite.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/movil/pruebas_sqlite.sql)</td></tr><tr><td><strong>Unidad 8 (Sync)</strong></td><td>Vista snapshot del servidor y consulta del Semáforo</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>movil/postgresql_snapshot.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/movil/postgresql_snapshot.sql), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>movil/semaforo.sql</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/movil/semaforo.sql)</td></tr><tr><td><strong>Unidad 8 (Simulador)</strong></td><td>Suite de simulación de escenarios C1 a C7</td><td><a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>movil/simulador_casos.py</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/movil/simulador_casos.py), <a href="file:///d:/formateo%20win%2011/Estudios%20(Nuevo"><code>movil/ejecutar_pruebas.py</code></a>/utn%20tec.%20programación/3°%20Semestre/Base%20de%20Datos%202/Food-Store/movil/ejecutar_pruebas.py)</td></tr></tbody></table>
+    
+    <div class="footer">
+        Base de Datos II · Proyecto Integrador Food Store · UTN Tecnicatura Universitaria en Programación
+    </div>
+</body>
+</html>

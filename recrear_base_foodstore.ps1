@@ -117,16 +117,21 @@ try {
     Write-Host "Aplicando sql/usuario_anon.sql..."
     Run-Psql -Db $Database -File "sql\usuario_anon.sql"
 
+    Write-Step "PASO 12: Vista de instantánea para sincronización móvil (Unidad 8 / TP10)"
+    Write-Host "Aplicando movil/postgresql_snapshot.sql..."
+    Run-Psql -Db $Database -File "movil\postgresql_snapshot.sql"
+
     Write-Host "`n======================================================================" -ForegroundColor Green
     Write-Host " ¡RECREACIÓN INTEGRAL DE '$Database' COMPLETADA CON ÉXITO!" -ForegroundColor Green
     Write-Host "======================================================================" -ForegroundColor Green
     Write-Host "La base cuenta con todas las tablas, índices, vistas, extensiones, roles,"
-    Write-Host "procedimientos y datos acumulados desde la Unidad 1 hasta el TP8."
-    Write-Host "`nAhora puedes ejecutar directamente las tareas de la Unidad 6 (TP8):"
-    Write-Host "1. Respaldo:    .\docs\tp8\backup_foodstore.ps1 -Database $Database"
-    Write-Host "2. Monitoreo:   psql -U $User -d $Database -f docs\tp8\health_check.sql"
-    Write-Host "3. Mantenim.:   psql -U $User -d $Database -f docs\tp8\maintenance.sql"
-    Write-Host "4. Simulacro:   .\docs\tp8\restore_test.ps1 -RestoreDatabase foodstore_restore_test -SourceDatabase $Database"
+    Write-Host "procedimientos y datos acumulados desde la Unidad 1 hasta la Unidad 8 (TP10)."
+    Write-Host "`nAhora puedes ejecutar directamente las pruebas de validación de la Segunda Entrega:"
+    Write-Host "1. Suite TPI 2:   psql -U $User -d $Database -f db\tpi_parcial2_pruebas.sql"
+    Write-Host "2. Respaldo:      .\docs\tp8\backup_foodstore.ps1 -Database $Database"
+    Write-Host "3. Monitoreo:     psql -U $User -d $Database -f sql\health_check.sql"
+    Write-Host "4. Mantenimiento: psql -U $User -d $Database -f sql\maintenance.sql"
+    Write-Host "5. Simulacro:     .\docs\tp8\restore_test.ps1 -RestoreDatabase foodstore_restore_test -SourceDatabase $Database"
     Write-Host "======================================================================`n" -ForegroundColor Green
 
 } catch {
