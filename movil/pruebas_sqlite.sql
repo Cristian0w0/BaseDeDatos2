@@ -17,17 +17,17 @@ DELETE FROM pedido_borrador;
 DELETE FROM producto_cache;
 
 INSERT INTO producto_cache (producto_id, nombre, precio_centavos, stock_visto, disponible_visto, eliminado, capturado_en) VALUES
-(1, 'Pizza Muzzarella',       900000, 15, 1, 0, '2026-11-03T10:00:00Z'),
-(2, 'Pizza Fugazzeta',       1000000,  5, 1, 1, '2026-11-03T10:00:00Z'), -- Eliminado (lápida)
-(3, 'Empanada de Carne',      120000, 20, 1, 0, '2026-11-03T10:00:00Z'),
-(4, 'Gaseosa 500ml',          150000,  0, 1, 0, '2026-11-03T10:00:00Z'), -- Stock 0 pero visible
-(5, 'Cerveza Artesanal',      280000, 10, 0, 0, '2026-11-03T10:00:00Z'); -- No disponible temporalmente
+(1, 'Pizza Muzzarella',       900000, 15, 1, 0, '2026-11-03T10:24:18Z'),
+(2, 'Pizza Fugazzeta',       1000000,  5, 0, 1, '2026-11-03T10:24:18Z'), -- Eliminado (lápida: disponible_visto=0, eliminado=1)
+(3, 'Empanada de Carne',      120000, 20, 1, 0, '2026-11-03T10:24:18Z'),
+(4, 'Gaseosa 500ml',          150000,  0, 1, 0, '2026-11-03T10:24:18Z'), -- Stock 0 pero visible
+(5, 'Cerveza Artesanal',      280000, 10, 1, 0, '2026-11-03T10:24:18Z');
 
 -- ----------------------------------------------------------------------------
 -- 1. CASO C1: CONSULTA DEL CATÁLOGO DISPONIBLE SIN CONEXIÓN
 -- La tablet lee localmente desde la vista v_catalogo_disponible.
 -- Debe mostrar solo productos con eliminado = 0 y disponible_visto = 1.
--- Fugazzeta (eliminado=1) y Cerveza (disponible=0) NO deben figurar.
+-- Fugazzeta (eliminado=1, disponible_visto=0) NO debe figurar por tener lápida activa.
 -- ----------------------------------------------------------------------------
 SELECT '=== PRUEBA CASO C1: Catálogo disponible offline ===' AS test_header;
 

@@ -1,8 +1,8 @@
 producto_id,nombre,precio_centavos,stock,disponible,eliminado,capturado_en
-1,Pizza Muzzarella,900000,15,t,f,2026-11-03 10:00:00-03
-2,Pizza Fugazzeta,1000000,5,t,t,2026-11-03 10:00:00-03
-3,Empanada de Carne,120000,20,t,f,2026-11-03 10:00:00-03
-4,Gaseosa 500ml,150000,0,t,f,2026-11-03 10:00:00-03
-5,Cerveza Artesanal,280000,10,f,f,2026-11-03 10:00:00-03
-6,Pizza Napolitana,950000,8,t,f,2026-11-03 10:00:00-03
-7,Empanada de Jamon y Queso,120000,12,t,f,2026-11-03 10:00:00-03
+1,Pizza Muzzarella,900000,15,t,f,2026-11-03 10:24:18.391024-03
+2,Pizza Fugazzeta,1000000,5,f,t,2026-11-03 10:24:18.391024-03
+3,Empanada de Carne,120000,20,t,f,2026-11-03 10:24:18.391024-03
+4,Gaseosa 500ml,150000,0,t,f,2026-11-03 10:24:18.391024-03
+5,Cerveza Artesanal,280000,10,t,f,2026-11-03 10:24:18.391024-03
+6,Pizza Napolitana,950000,8,t,f,2026-11-03 10:24:18.391024-03
+7,Empanada de Jamon y Queso,120000,12,t,f,2026-11-03 10:24:18.391024-03

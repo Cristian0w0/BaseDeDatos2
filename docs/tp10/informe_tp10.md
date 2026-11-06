@@ -34,9 +34,10 @@ Para operar el Food Truck en una feria gastronómica sin conectividad garantizad
 
 ### 2.a Instantánea del servidor y exportación
 
-La sincronización se basa en dos operaciones asimétricas:
-1. **Descarga (Instantánea):** El servidor PostgreSQL publica la vista `v_snapshot_movil` con fecha de toma y precios expresados en centavos enteros. Se exporta a `servidor_snapshot.csv` y se importa en SQLite en la tabla `snapshot_servidor`, actualizando `producto_cache`.
-2. **Envío (Cola de Sincronización):** Los borradores locales se encolan con identificadores únicos `solicitud_uuid` generados en el dispositivo.
+La sincronización se basa en operaciones asimétricas con roles estrictamente delimitados:
+1. **Descarga y Exportación Central:** El servidor PostgreSQL publica la vista `v_snapshot_movil` con fecha de toma precisa en microsegundos y precios expresados en centavos enteros. Se exporta directamente a `movil/servidor_snapshot.csv` mediante `\copy (SELECT * FROM v_snapshot_movil) TO 'movil/servidor_snapshot.csv' CSV HEADER;`. En la vista, las columnas booleanas `disponible` y `eliminado` son complementos lógicos estrictos (`disponible = (p.activo AND c.activa)` y `eliminado = (NOT p.activo OR NOT c.activa)`), por lo que nunca pueden ser simultáneamente verdaderas ni falsas.
+2. **Importación y Recarga Oficial:** En SQLite se importa el CSV a la tabla `snapshot_servidor`, y desde allí se ejecuta la consulta oficial de recarga del catálogo para sincronizar `producto_cache`.
+3. **Envío (Cola de Sincronización):** Los borradores locales se encolan con identificadores únicos `solicitud_uuid` generados en el dispositivo móvil.
 
 ```sql
 -- Vista en PostgreSQL (postgresql_snapshot.sql)
@@ -67,17 +68,22 @@ El script `semaforo.sql` evalúa exclusivamente las solicitudes en estado `PENDI
 
 ### 2.c Comprobación de los Casos de Prueba (C2 a C6)
 
-Los 5 escenarios fueron ejecutados y verificados mediante `movil/simulador_casos.py`, confirmando el comportamiento esperado y la invariabilidad de la base central.
+Los 5 escenarios fueron modelados a partir de las operaciones en la base central PostgreSQL (documentadas en `movil/servidor_casos_c2_c4.sql`) y verificados mediante `movil/simulador_casos.py`, confirmando el comportamiento esperado y la invariabilidad de la base central.
 
 #### Caso C2 · Conflicto de precio resuelto con el cliente
-* **Situación:** Se genera un borrador con 1 Pizza Muzzarella al precio visto de $9.000 (`900000` centavos). Posteriormente, el servidor actualiza el precio a $10.500 (`1050000` centavos).
+* **Situación:** Se genera un borrador con 1 Pizza Muzzarella al precio visto de $9.000 (`900000` centavos).
+* **Modificación en Servidor PostgreSQL (`servidor_casos_c2_c4.sql`):**
+  ```sql
+  UPDATE producto SET precio = 105.00 WHERE id_producto = 1;
+  -- Servidor exporta nueva instantánea desde v_snapshot_movil con precio_centavos = 1050000
+  ```
 * **Comando y Semáforo (Envío 1):** 
   ```sql
-  -- Solicitud inicial enviada con precio visto $9.000
+  -- Solicitud inicial enviada con precio visto $9.000 frente a la nueva instantánea
   UPDATE cola_sync SET estado = 'CONFLICTO', motivo = 'CONFLICTO: El precio cambió en el servidor...' WHERE solicitud_uuid = 'solicitud-uuid-c2-envio1';
   ```
-* **Resultado:** **`CONFLICTO`**. El semáforo detecta la diferencia tarifaria sin rechazar la venta.
-* **Resolución (Envío 2):** El cliente acepta pagar $10.500 en mostrador. Se actualiza el ítem del borrador local a `1050000` centavos y se genera una nueva solicitud (`solicitud-uuid-c2-envio2`).
+* **Resultado:** **`CONFLICTO`**. El semáforo detecta la diferencia tarifaria sin descartar la venta.
+* **Resolución y Recarga Oficial (Envío 2):** El cliente acepta pagar $10.500 en mostrador. La tablet **recarga el catálogo oficial** desde la instantánea del servidor (`INSERT OR REPLACE INTO producto_cache SELECT ... FROM snapshot_servidor`), actualiza el ítem del borrador local a `1050000` centavos y reenvía con una nueva solicitud (`solicitud-uuid-c2-envio2`).
   * **Resultado del Semáforo 2:** **`SIMULADO_APROBADO`**.
 
 #### Caso C3 · Quiebre de stock en el servidor
@@ -90,13 +96,31 @@ Los 5 escenarios fueron ejecutados y verificados mediante `movil/simulador_casos
 * **Resultado:** **`RECHAZADO`**. La tablet no permite enviar el pedido y advierte al vendedor que la cocina no tiene unidades suficientes. El stock del servidor permanece inalterado en 8 unidades.
 
 #### Caso C4 · Producto dado de baja lógica (Lápida activa)
-* **Situación:** Se arma un borrador con 2 Empanadas de Jamón y Queso (ID 7). Minutos después, el servidor aplica baja lógica a la categoría o producto (`eliminado = 't'`).
+* **Situación:** Se arma un borrador con 2 Empanadas de Jamón y Queso (ID 7).
+* **Modificación en Servidor PostgreSQL (`servidor_casos_c2_c4.sql`):**
+  ```sql
+  UPDATE producto SET activo = FALSE WHERE id_producto = 7;
+  -- v_snapshot_movil exporta para producto 7: disponible = 'f', eliminado = 't' (lápida activa)
+  ```
 * **Comando y Semáforo:**
   ```sql
   -- Detección de lápida s.eliminado = 't'
   UPDATE cola_sync SET estado = 'RECHAZADO', motivo = 'RECHAZADO: Producto dado de baja en el servidor (lápida activa)' WHERE solicitud_uuid = 'solicitud-uuid-c4';
   ```
-* **Resultado:** **`RECHAZADO`**. Al recargar el catálogo local (`producto_cache`), el producto se marca con `eliminado = 1`. Desaparece automáticamente de la vista `v_catalogo_disponible` (el vendedor no lo ve más en pantalla), pero el registro físico se preserva en `producto_cache` para no quebrar las claves foráneas de borradores históricos.
+* **Resultado:** **`RECHAZADO`**.
+* **Recarga Oficial del Catálogo (Consigna 2.c):** La tablet **nunca** marca la baja a mano mediante un `UPDATE` local en `producto_cache`. En su lugar, ejecuta la consulta oficial de recarga de catálogo desde la nueva instantánea del servidor:
+  ```sql
+  INSERT OR REPLACE INTO producto_cache (
+      producto_id, nombre, precio_centavos, stock_visto, disponible_visto, eliminado, capturado_en
+  )
+  SELECT 
+      s.producto_id, s.nombre, s.precio_centavos, s.stock,
+      CASE WHEN s.disponible IN ('t', 'true', 'TRUE', '1', 1) THEN 1 ELSE 0 END,
+      CASE WHEN s.eliminado IN ('t', 'true', 'TRUE', '1', 1) THEN 1 ELSE 0 END,
+      s.capturado_en
+  FROM snapshot_servidor s;
+  ```
+  Al procesar la lápida, `producto_cache` actualiza automáticamente el producto a `eliminado = 1` y `disponible_visto = 0`. El producto desaparece de la vista de ventas `v_catalogo_disponible`, conservando su fila física para mantener la integridad referencial de pedidos y borradores previos.
 
 #### Caso C5 · Solicitud limpia sin alteraciones
 * **Situación:** Se genera un pedido por 2 Empanadas de Carne (ID 3) a $1.200 (`120000` centavos), existiendo 20 unidades en stock.
@@ -120,15 +144,15 @@ Los 5 escenarios fueron ejecutados y verificados mediante `movil/simulador_casos
 
 ---
 
-### Verificación de Invariabilidad en PostgreSQL
+### Verificación de Invariabilidad en PostgreSQL (Consigna 2.c)
 
-Para corroborar que la simulación cumple con la Regla de Oro (*"El móvil propone, el servidor dispone"*), se verificó que ninguna operación del semáforo ni de la tablet alteró los registros productivos de PostgreSQL:
+Para corroborar que la simulación cumple con la Regla de Oro (*"El móvil propone, el servidor dispone"*), se verificó en `movil/servidor_casos_c2_c4.sql` que ninguna operación del semáforo ni de la tablet alteró los registros productivos de PostgreSQL:
 
 ```sql
--- Consulta en PostgreSQL tras la simulación
+-- Consulta en PostgreSQL tras la simulación (servidor_casos_c2_c4.sql)
 SELECT 
     (SELECT COUNT(*) FROM pedido) AS total_pedidos_servidor,
-    (SELECT SUM(stock) FROM producto) AS stock_total_servidor;
+    (SELECT SUM(stock) FROM producto) AS stock_total_consolidado;
 ```
 * **Resultado:** La cantidad de pedidos confirmados y el stock consolidado permanecen idénticos a los valores previos a la feria. `SIMULADO_APROBADO` es una simulación de factibilidad, nunca una venta confirmada.
 

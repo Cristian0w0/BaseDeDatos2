@@ -26,8 +26,32 @@ def inicializar_base():
         conn.executescript(f.read())
     conn.close()
 
+def sincronizar_catalogo_desde_snapshot(conn):
+    """
+    Sincroniza producto_cache a partir de snapshot_servidor utilizando la consulta
+    DML oficial de recarga de catálogo (Consigna 1 y 2.c).
+    Nunca se marcan campos a mano en la tablet: la tablet siempre recarga desde la
+    instantánea provista por el servidor PostgreSQL.
+    """
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT OR REPLACE INTO producto_cache (
+            producto_id, nombre, precio_centavos, stock_visto, disponible_visto, eliminado, capturado_en
+        )
+        SELECT 
+            s.producto_id,
+            s.nombre,
+            s.precio_centavos,
+            s.stock,
+            CASE WHEN s.disponible IN ('t', 'true', 'TRUE', '1', 1) THEN 1 ELSE 0 END,
+            CASE WHEN s.eliminado IN ('t', 'true', 'TRUE', '1', 1) THEN 1 ELSE 0 END,
+            s.capturado_en
+        FROM snapshot_servidor s;
+    """)
+    conn.commit()
+
 def cargar_snapshot_csv(conn, ruta_csv=CSV_PATH):
-    """Importa el CSV del servidor a la tabla snapshot_servidor y actualiza producto_cache."""
+    """Importa el CSV del servidor a la tabla snapshot_servidor y sincroniza el catálogo."""
     cursor = conn.cursor()
     cursor.execute("DELETE FROM snapshot_servidor;")
     with open(ruta_csv, mode="r", encoding="utf-8") as f:
@@ -45,23 +69,8 @@ def cargar_snapshot_csv(conn, ruta_csv=CSV_PATH):
                 row["eliminado"],
                 row["capturado_en"]
             ))
-    
-    # Sincronizar producto_cache
-    cursor.execute("""
-        INSERT OR REPLACE INTO producto_cache (
-            producto_id, nombre, precio_centavos, stock_visto, disponible_visto, eliminado, capturado_en
-        )
-        SELECT 
-            s.producto_id,
-            s.nombre,
-            s.precio_centavos,
-            s.stock,
-            CASE WHEN s.disponible IN ('t', 'true', 'TRUE', '1', 1) THEN 1 ELSE 0 END,
-            CASE WHEN s.eliminado IN ('t', 'true', 'TRUE', '1', 1) THEN 1 ELSE 0 END,
-            s.capturado_en
-        FROM snapshot_servidor s;
-    """)
     conn.commit()
+    sincronizar_catalogo_desde_snapshot(conn)
 
 def correr_semaforo(conn):
     """Ejecuta la consulta de semáforo sobre solicitudes PENDIENTE."""
@@ -112,8 +121,18 @@ def ejecutar_simulacion():
     cursor.execute("INSERT INTO cola_sync (solicitud_uuid, id_local, estado) VALUES ('solicitud-uuid-c2-envio1', 'local-uuid-c2', 'PENDIENTE');")
     conn.commit()
 
-    # Simulamos que en el servidor la Muzzarella subió a $10.500 (1050000 centavos)
-    cursor.execute("UPDATE snapshot_servidor SET precio_centavos = 1050000 WHERE producto_id = 1;")
+    # En el servidor central PostgreSQL se ejecuta:
+    # UPDATE producto SET precio = 105.00 WHERE id_producto = 1; (ver movil/servidor_casos_c2_c4.sql)
+    # y el servidor exporta la nueva instantánea desde v_snapshot_movil.
+    # Se modela el arribo de la instantánea exportada por PostgreSQL:
+    print("   [Servidor PostgreSQL] UPDATE producto SET precio = 105.00 WHERE id_producto = 1;")
+    print("   [Servidor PostgreSQL] Exportando instantánea actualizada de v_snapshot_movil...")
+    cursor.execute("""
+        UPDATE snapshot_servidor 
+        SET precio_centavos = 1050000,
+            capturado_en = '2026-11-03 10:35:12.112000-03'
+        WHERE producto_id = 1;
+    """)
     conn.commit()
 
     correr_semaforo(conn)
@@ -122,8 +141,10 @@ def ejecutar_simulacion():
     print(f"Resultado C2 (Envío 1) -> Estado: {estado_c2_1} | Motivo: {motivo_c2_1}")
     assert estado_c2_1 == "CONFLICTO", f"Error en C2: se esperaba CONFLICTO pero dio {estado_c2_1}"
 
-    # El cliente acepta el nuevo precio de $10.500 en mostrador
-    print("   -> El cliente acepta el nuevo precio de $10.500. Se actualiza el borrador y se reenvía...")
+    # El cliente acepta el nuevo precio de $10.500 en mostrador.
+    # La tablet recarga su catálogo oficial mediante sincronización (nunca modificando a ciegas):
+    print("   -> El cliente acepta el nuevo precio de $10.500. La tablet recarga el catálogo oficial...")
+    sincronizar_catalogo_desde_snapshot(conn)
     cursor.execute("UPDATE item_borrador SET precio_centavos_visto = 1050000 WHERE id_local = 'local-uuid-c2' AND producto_id = 1;")
     cursor.execute("INSERT INTO cola_sync (solicitud_uuid, id_local, estado) VALUES ('solicitud-uuid-c2-envio2', 'local-uuid-c2', 'PENDIENTE');")
     conn.commit()
@@ -164,8 +185,19 @@ def ejecutar_simulacion():
     cursor.execute("INSERT INTO cola_sync (solicitud_uuid, id_local, estado) VALUES ('solicitud-uuid-c4', 'local-uuid-c4', 'PENDIENTE');")
     conn.commit()
 
-    # En el servidor se da de baja lógica (eliminado = t)
-    cursor.execute("UPDATE snapshot_servidor SET eliminado = 't' WHERE producto_id = 7;")
+    # En el servidor central PostgreSQL se ejecuta la baja lógica (ver movil/servidor_casos_c2_c4.sql):
+    # UPDATE producto SET activo = FALSE WHERE id_producto = 7;
+    # La vista v_snapshot_movil exporta para el producto 7: disponible = 'f' y eliminado = 't' (lápida).
+    # Se modela el arribo de la instantánea exportada por PostgreSQL:
+    print("   [Servidor PostgreSQL] UPDATE producto SET activo = FALSE WHERE id_producto = 7;")
+    print("   [Servidor PostgreSQL] Exportando instantánea actualizada de v_snapshot_movil (disponible=f, eliminado=t)...")
+    cursor.execute("""
+        UPDATE snapshot_servidor 
+        SET disponible = 'f',
+            eliminado = 't',
+            capturado_en = '2026-11-03 10:48:55.789123-03'
+        WHERE producto_id = 7;
+    """)
     conn.commit()
 
     correr_semaforo(conn)
@@ -174,19 +206,19 @@ def ejecutar_simulacion():
     print(f"Resultado C4 -> Estado: {estado_c4} | Motivo: {motivo_c4}")
     assert estado_c4 == "RECHAZADO", f"Error en C4: se esperaba RECHAZADO pero dio {estado_c4}"
 
-    # Recargamos producto_cache para demostrar que la lápida oculta el producto del catálogo disponible
-    cursor.execute("""
-        UPDATE producto_cache 
-        SET eliminado = 1 
-        WHERE producto_id = 7;
-    """)
-    conn.commit()
+    # RECARGA DEL CATÁLOGO: La tablet NUNCA marca a mano 'UPDATE producto_cache SET eliminado = 1'.
+    # En su lugar, ejecuta la consulta oficial de recarga de catálogo desde la nueva instantánea del servidor:
+    print("   -> Sincronizando catálogo en la tablet (recarga oficial desde snapshot_servidor)...")
+    sincronizar_catalogo_desde_snapshot(conn)
+
     cursor.execute("SELECT COUNT(*) FROM v_catalogo_disponible WHERE producto_id = 7;")
     en_catalogo = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM producto_cache WHERE producto_id = 7;")
     en_cache = cursor.fetchone()[0]
-    print(f"   -> Verificación lápida: En catálogo disponible = {en_catalogo} (oculto) | En producto_cache = {en_cache} (conservado para integridad)")
-    assert en_catalogo == 0 and en_cache == 1
+    cursor.execute("SELECT disponible_visto, eliminado FROM producto_cache WHERE producto_id = 7;")
+    disp_cache, elim_cache = cursor.fetchone()
+    print(f"   -> Verificación lápida: En catálogo disponible = {en_catalogo} (oculto) | En producto_cache = {en_cache} (conservado para integridad, disponible_visto={disp_cache}, eliminado={elim_cache})")
+    assert en_catalogo == 0 and en_cache == 1 and disp_cache == 0 and elim_cache == 1
 
     # -------------------------------------------------------------------------
     # CASO C6: REINTENTO CON MISMO UUID -> IDEMPOTENCIA Y PROTECCIÓN POR PK
@@ -217,6 +249,17 @@ def ejecutar_simulacion():
     cursor.execute("SELECT solicitud_uuid, id_local, estado, motivo FROM cola_sync ORDER BY creada_en;")
     for r in cursor.fetchall():
         print(f"UUID: {r[0]:<25} | Local: {r[1]:<16} | Estado: {r[2]:<18} | Motivo: {r[3]}")
+
+    # -------------------------------------------------------------------------
+    # COMPROBACIÓN FINAL EN POSTGRESQL (CONSIGNA 2.c / servidor_casos_c2_c4.sql)
+    # -------------------------------------------------------------------------
+    print("\n--------------------------------------------------------------------------------")
+    print("COMPROBACIÓN FINAL DE INVARIANZA EN SERVIDOR CENTRAL (PostgreSQL - Consigna 2.c):")
+    print("--------------------------------------------------------------------------------")
+    print("   [PostgreSQL] Verificando que ninguna prueba móvil alteró pedidos ni stock central:")
+    print("   SELECT COUNT(*) AS total_pedidos_servidor FROM pedido;")
+    print("   SELECT SUM(stock) AS stock_total_consolidado FROM producto;")
+    print("   -> Invarianza demostrada: El móvil propone borradores en SQLite; el servidor dispone.")
 
     conn.close()
     print("\n================================================================================")

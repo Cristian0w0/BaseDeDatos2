@@ -259,7 +259,7 @@ Se ejecutó la suite de pruebas en <code>movil/pruebas_sqlite.sql</code> comprob
 
 <h3>2.a Instantánea del Servidor e Importación</h3>
 <p>
-El servidor central PostgreSQL genera la instantánea oficial mediante la vista <code>v_snapshot_movil</code> (script <code>movil/postgresql_snapshot.sql</code>). Los precios se convierten a centavos enteros en origen (<code>(p.precio * 100)::INTEGER</code>) y la baja lógica calcula la lápida: <code>(NOT p.activo OR NOT c.activa) AS eliminado</code>. La vista se exporta a <code>movil/servidor_snapshot.csv</code> y se carga en la tabla <code>snapshot_servidor</code> en SQLite, sincronizando <code>producto_cache</code> mediante <code>INSERT OR REPLACE</code> y traduciendo <code>'t'/'f'</code> a <code>1/0</code>.
+El servidor central PostgreSQL genera la instantánea oficial mediante la vista <code>v_snapshot_movil</code> (script <code>movil/postgresql_snapshot.sql</code>). Los precios se convierten a centavos enteros en origen (<code>(p.precio * 100)::INTEGER</code>) y la baja lógica calcula la lápida: <code>(NOT p.activo OR NOT c.activa) AS eliminado</code>. Como <code>disponible</code> y <code>eliminado</code> son complementos lógicos estrictos, nunca son simultáneamente verdaderos ni falsos. La vista se exporta directamente a <code>movil/servidor_snapshot.csv</code> con marca de tiempo precisa en microsegundos y se carga en <code>snapshot_servidor</code> en SQLite, recargando <code>producto_cache</code> mediante la consulta de sincronización oficial.
 </p>
 
 <h3>2.b Lógica del Semáforo de Sincronización</h3>
@@ -295,9 +295,9 @@ El script <code>movil/semaforo.sql</code> implementa una Common Table Expression
         </tr>
         <tr>
             <td><strong>Caso C2</strong></td>
-            <td>Borrador con Muzzarella a $9.000. El servidor actualiza tarifa a $10.500.</td>
+            <td>Borrador con Muzzarella a $9.000. En PostgreSQL se actualiza el precio: <code>UPDATE producto SET precio = 105.00</code> (<code>servidor_casos_c2_c4.sql</code>) y se reexporta la instantánea.</td>
             <td style="text-align:center;"><span class="badge badge-yellow">CONFLICTO</span><br>&darr;<br><span class="badge badge-green">SIMULADO_APROBADO</span></td>
-            <td><strong>Envío 1:</strong> Marca CONFLICTO sin descartar el pedido. El cliente acepta pagar $10.500 en mostrador.<br><strong>Envío 2:</strong> Se actualiza el ítem a 1050000 centavos y un nuevo UUID resulta aprobado.</td>
+            <td><strong>Envío 1:</strong> CONFLICTO tarifario.<br><strong>Resolución:</strong> Cliente acepta $10.500. La tablet <strong>recarga el catálogo oficial</strong> desde <code>snapshot_servidor</code>, actualiza el ítem a 1050000 centavos y un segundo envío resulta aprobado.</td>
         </tr>
         <tr>
             <td><strong>Caso C3</strong></td>
@@ -307,9 +307,9 @@ El script <code>movil/semaforo.sql</code> implementa una Common Table Expression
         </tr>
         <tr>
             <td><strong>Caso C4</strong></td>
-            <td>Borrador con producto que el servidor da de baja lógica (lápida <code>eliminado='t'</code>).</td>
+            <td>Borrador con Empanada Jamón y Queso. En PostgreSQL se aplica baja lógica: <code>UPDATE producto SET activo = FALSE</code> (<code>servidor_casos_c2_c4.sql</code>) exportando lápida (<code>disponible='f', eliminado='t'</code>).</td>
             <td style="text-align:center;"><span class="badge badge-red">RECHAZADO</span></td>
-            <td>El semáforo rechaza la solicitud. Al actualizar la caché local, el producto desaparece de <code>v_catalogo_disponible</code> pero su fila persiste para trazabilidad.</td>
+            <td><strong>Semáforo:</strong> RECHAZADO por lápida activa.<br><strong>Recarga Oficial:</strong> La tablet <strong>no marca a mano</strong> en SQLite; ejecuta la recarga oficial (<code>INSERT OR REPLACE INTO producto_cache SELECT ... FROM snapshot_servidor</code>), ocultándolo de <code>v_catalogo_disponible</code> pero preservándolo en caché.</td>
         </tr>
         <tr>
             <td><strong>Caso C6</strong></td>
@@ -324,7 +324,7 @@ El script <code>movil/semaforo.sql</code> implementa una Common Table Expression
 <strong>Dónde va la protección real en producción:</strong> La protección definitiva contra duplicaciones no puede recaer en el dispositivo móvil (que puede ser reseteado o manipulado). En un entorno productivo, reside en <strong>PostgreSQL</strong> mediante una tabla central <code>solicitud_movil (solicitud_uuid UUID PRIMARY KEY, ...)</code> insertada dentro de la misma transacción de <code>sp_crear_pedido</code> con <code>ON CONFLICT (solicitud_uuid) DO NOTHING</code>.
 </p>
 <p>
-<strong>Comprobación de Invariabilidad en PostgreSQL:</strong> Se constató mediante consulta SQL que el inventario global y el conteo de pedidos confirmados en PostgreSQL se mantuvieron idénticos antes y después de todas las pruebas.
+<strong>Comprobación de Invariabilidad en PostgreSQL (Consigna 2.c):</strong> Se documentó y comprobó en <code>movil/servidor_casos_c2_c4.sql</code> mediante <code>SELECT COUNT(*) FROM pedido</code> y <code>SELECT SUM(stock) FROM producto</code> que el inventario consolidado y los pedidos confirmados en PostgreSQL permanecieron idénticos antes y después de todas las pruebas en la tablet (<em>el móvil propone, el servidor dispone</em>).
 </p>
 
 <div class="page-break"></div>
