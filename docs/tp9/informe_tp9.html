@@ -194,7 +194,7 @@ Para representar la gestión comercial de <strong>Food Store</strong> se selecci
             <td><strong><code>pedido</code></strong></td>
             <td><code>id_pedido</code> (IDENTITY)</td>
             <td><code>cliente_id &rarr; cliente(id_cliente)</code> [RESTRICT]</td>
-            <td>Cabecera: <code>fecha_pedido</code> (TIMESTAMPTZ), <code>forma_pago</code> (ENUM: EFECTIVO, TARJETA, TRANSFERENCIA).</td>
+            <td>Cabecera: <code>fecha_pedido</code> (TIMESTAMPTZ), <code>forma_pago</code> (ENUM), <code>estado</code> (ENUM: PENDIENTE, CONFIRMADO, ENTREGADO, CANCELADO).</td>
         </tr>
         <tr>
             <td><strong><code>detalle_pedido</code></strong></td>
@@ -237,16 +237,15 @@ Se adopta un diseño desnormalizado basado en el patrón <strong>Aggregate Root<
   "fecha_pedido": ISODate("2026-10-10T12:30:00Z"),
   "estado": "ENTREGADO",
   "forma_pago": "EFECTIVO",
-  "total": 6500.00,
+  "total": 100.00,
   "cliente": {
     "cliente_id": NumberLong("1"),
-    "nombre": "Carlos",
-    "apellido": "González",
-    "email": "carlos.gonzalez@example.com"
+    "nombre": "Cliente",
+    "apellido": "Inicial",
+    "email": "cliente.inicial@foodstore.local"
   },
   "lineas": [
-    { "producto_id": NumberLong("1"), "nombre_producto": "Hamburguesa Clásica", "cantidad": 2, "precio_unitario": 2500.00, "subtotal": 5000.00 },
-    { "producto_id": NumberLong("4"), "nombre_producto": "Gaseosa Cola 500ml", "cantidad": 1, "precio_unitario": 1500.00, "subtotal": 1500.00 }
+    { "producto_id": NumberLong("1"), "nombre_producto": "Producto Inicial", "cantidad": 1, "precio_unitario": 100.00, "subtotal": 100.00 }
   ]
 }</div>
 
@@ -266,22 +265,20 @@ db.pedidos.drop(); // Idempotencia de ejecución
 
 db.pedidos.insertMany([
   {
-    "_id": NumberLong("1"), "fecha_pedido": ISODate("2026-10-10T12:30:00Z"), "estado": "ENTREGADO", "forma_pago": "EFECTIVO", "total": 6500.00,
-    "cliente": { "cliente_id": NumberLong("1"), "nombre": "Carlos", "apellido": "González", "email": "carlos.gonzalez@example.com" },
+    "_id": NumberLong("1"), "fecha_pedido": ISODate("2026-10-15T12:00:00Z"), "estado": "ENTREGADO", "forma_pago": "EFECTIVO", "total": 100.00,
+    "cliente": { "cliente_id": NumberLong("1"), "nombre": "Cliente", "apellido": "Inicial", "email": "cliente.inicial@foodstore.local" },
     "lineas": [
-      { "producto_id": NumberLong("1"), "nombre_producto": "Hamburguesa Clásica", "cantidad": 2, "precio_unitario": 2500.00, "subtotal": 5000.00 },
-      { "producto_id": NumberLong("4"), "nombre_producto": "Gaseosa Cola 500ml", "cantidad": 1, "precio_unitario": 1500.00, "subtotal": 1500.00 }
+      { "producto_id": NumberLong("1"), "nombre_producto": "Producto Inicial", "cantidad": 1, "precio_unitario": 100.00, "subtotal": 100.00 }
     ]
   },
   {
-    "_id": NumberLong("2"), "fecha_pedido": ISODate("2026-10-11T14:15:00Z"), "estado": "PENDIENTE", "forma_pago": "TARJETA", "total": 3500.00,
-    "cliente": { "cliente_id": NumberLong("2"), "nombre": "Ana", "apellido": "Martínez", "email": "ana.martinez@example.com" },
+    "_id": NumberLong("2"), "fecha_pedido": ISODate("2026-10-16T15:30:00Z"), "estado": "CONFIRMADO", "forma_pago": "TARJETA", "total": 200.00,
+    "cliente": { "cliente_id": NumberLong("1"), "nombre": "Cliente", "apellido": "Inicial", "email": "cliente.inicial@foodstore.local" },
     "lineas": [
-      { "producto_id": NumberLong("2"), "nombre_producto": "Papas Fritas Medianas", "cantidad": 1, "precio_unitario": 2000.00, "subtotal": 2000.00 },
-      { "producto_id": NumberLong("4"), "nombre_producto": "Gaseosa Cola 500ml", "cantidad": 1, "precio_unitario": 1500.00, "subtotal": 1500.00 }
+      { "producto_id": NumberLong("1"), "nombre_producto": "Producto Inicial", "cantidad": 2, "precio_unitario": 100.00, "subtotal": 200.00 }
     ]
   },
-  // Pedidos #3 ($11.000,00), #4 ($16.500,00) y #5 ($5.500,00) cargados con estructura idéntica (ver consultas_mongodb.js)
+  // Pedidos #3 ($175.50), #4 ($268.00) y #5 ($377.50) cargados con estructura idéntica (ver consultas_mongodb.js)
 ]);</div>
 
 <h4>Evidencia de ejecución en MongoDB Shell:</h4>
@@ -324,42 +321,40 @@ Total de documentos en la colección pedidos: 5 <span class="badge badge-success
 <h4>Consulta 4a: Mostrar todos los pedidos, incluyendo su identificador y estado</h4>
 <p><strong>Instrucción:</strong> <code>db.pedidos.find({}, { _id: 1, estado: 1, total: 1 });</code></p>
 <div class="code-block">[
-  { _id: Long('1'), estado: 'ENTREGADO', total: 6500 },
-  { _id: Long('2'), estado: 'PENDIENTE', total: 3500 },
-  { _id: Long('3'), estado: 'ENTREGADO', total: 11000 },
-  { _id: Long('4'), estado: 'ENTREGADO', total: 16500 },
-  { _id: Long('5'), estado: 'CONFIRMADO', total: 5500 }
+  { _id: Long('1'), estado: 'ENTREGADO', total: 100, cliente: { nombre: 'Cliente', apellido: 'Inicial' } },
+  { _id: Long('2'), estado: 'CONFIRMADO', total: 200, cliente: { nombre: 'Cliente', apellido: 'Inicial' } },
+  { _id: Long('3'), estado: 'PENDIENTE', total: 175.5, cliente: { nombre: 'María', apellido: 'Rodríguez' } },
+  { _id: Long('4'), estado: 'ENTREGADO', total: 268, cliente: { nombre: 'Carlos', apellido: 'Pérez' } },
+  { _id: Long('5'), estado: 'CONFIRMADO', total: 377.5, cliente: { nombre: 'Ana', apellido: 'González' } }
 ]</div>
 
 <h4>Consulta 4b: Filtrar pedidos por un estado que exista en los datos migrados (estado: 'ENTREGADO')</h4>
 <p><strong>Instrucción:</strong> <code>db.pedidos.find({ estado: "ENTREGADO" }, { _id: 1, estado: 1, total: 1 });</code></p>
 <div class="code-block">[
-  { _id: Long('1'), estado: 'ENTREGADO', total: 6500 },
-  { _id: Long('3'), estado: 'ENTREGADO', total: 11000 },
-  { _id: Long('4'), estado: 'ENTREGADO', total: 16500 }
+  { _id: Long('1'), estado: 'ENTREGADO', total: 100 },
+  { _id: Long('4'), estado: 'ENTREGADO', total: 268 }
 ]</div>
-<p><em>Resultado obtenido:</em> <strong>3 pedidos</strong> recuperados (IDs: 1, 3 y 4).</p>
+<p><em>Resultado obtenido:</em> <strong>2 pedidos</strong> recuperados (IDs: 1 y 4).</p>
 
-<h4>Consulta 4c: Buscar pedidos que contengan un producto determinado (producto_id: 1 - Hamburguesa Clásica)</h4>
+<h4>Consulta 4c: Buscar pedidos que contengan un producto determinado (producto_id: 1 - Producto Inicial)</h4>
 <p><strong>Instrucción:</strong> <code>db.pedidos.find({ "lineas.producto_id": NumberLong("1") }, { _id: 1, estado: 1, "lineas.nombre_producto": 1 });</code></p>
 <div class="code-block">[
-  { _id: Long('1'), estado: 'ENTREGADO', lineas: [ { producto_id: Long('1'), nombre_producto: 'Hamburguesa Clásica' }, { producto_id: Long('4'), nombre_producto: 'Gaseosa Cola 500ml' } ] },
-  { _id: Long('3'), estado: 'ENTREGADO', lineas: [ { producto_id: Long('1'), nombre_producto: 'Hamburguesa Clásica' }, { producto_id: Long('3'), nombre_producto: 'Cerveza Artesanal IPA' } ] },
-  { _id: Long('4'), estado: 'ENTREGADO', lineas: [ { producto_id: Long('5'), nombre_producto: 'Pizza Especial Mozzarella' }, { producto_id: Long('1'), nombre_producto: 'Hamburguesa Clásica' } ] }
+  { _id: Long('1'), estado: 'ENTREGADO', lineas: [ { producto_id: Long('1'), nombre_producto: 'Producto Inicial' } ] },
+  { _id: Long('2'), estado: 'CONFIRMADO', lineas: [ { producto_id: Long('1'), nombre_producto: 'Producto Inicial' } ] }
 ]</div>
-<p><em>Resultado obtenido:</em> <strong>3 pedidos</strong> recuperados (IDs: 1, 3 y 4). Se filtró con notación de punto directamente sobre el arreglo embebido.</p>
+<p><em>Resultado obtenido:</em> <strong>2 pedidos</strong> recuperados (IDs: 1 y 2). Se filtró con notación de punto directamente sobre el arreglo embebido.</p>
 
 <h4>Consulta 4d: Buscar pedidos cuyo total sea superior a un importe elegido y justificar el umbral</h4>
-<p><strong>Umbral elegido:</strong> <strong>$10.000,00</strong> (<code>total &gt; 10000.00</code>).</p>
+<p><strong>Umbral elegido:</strong> <strong>$200,00</strong> (<code>total &gt; 200.00</code>).</p>
 <div class="callout">
-    <strong>Justificación técnica del umbral:</strong> En Food Store, el ticket unitario individual promedio ronda entre $3.500 y $6.500 (plato individual más bebida). Establecer el corte en $10.000,00 segmenta de forma precisa las compras de alto impacto (pedidos grupales o familiares de múltiples platos y bebidas), diferenciándolas de órdenes rápidas individuales.
+    <strong>Justificación técnica del umbral:</strong> En el catálogo de bebidas y productos de Food Store, los pedidos individuales iniciales (pedidos 1 a 3) presentan subtotales de entre $100.00 y $200.00 (1 a 3 unidades vendidas). Establecer el umbral en $200.00 segmenta de forma precisa las órdenes de mayor volumen (pedidos 4 y 5 con 4 y 5 unidades respectivamente, alcanzando $268.00 y $377.50), permitiendo identificar y recuperar el 40% superior del lote migrado correspondiente a compras de consumo extendido o abastecimiento.
 </div>
-<p><strong>Instrucción:</strong> <code>db.pedidos.find({ total: { $gt: 10000.00 } }, { _id: 1, total: 1, "cliente.nombre": 1, "cliente.apellido": 1 });</code></p>
+<p><strong>Instrucción:</strong> <code>db.pedidos.find({ total: { $gt: 200.00 } }, { _id: 1, total: 1, "cliente.nombre": 1, "cliente.apellido": 1 });</code></p>
 <div class="code-block">[
-  { _id: Long('3'), total: 11000, cliente: { nombre: 'Lucía', apellido: 'Fernández' } },
-  { _id: Long('4'), total: 16500, cliente: { nombre: 'Carlos', apellido: 'González' } }
+  { _id: Long('4'), total: 268, cliente: { nombre: 'Carlos', apellido: 'Pérez' } },
+  { _id: Long('5'), total: 377.5, cliente: { nombre: 'Ana', apellido: 'González' } }
 ]</div>
-<p><em>Resultado obtenido:</em> <strong>2 pedidos</strong> recuperados (Pedido #3 por $11.000 y Pedido #4 por $16.500).</p>
+<p><em>Resultado obtenido:</em> <strong>2 pedidos</strong> recuperados (Pedido #4 por $268.00 y Pedido #5 por $377.50).</p>
 
 <!-- ==========================================
      PÁGINA 4: PARTE 2 (CONSIGNA 5)
@@ -378,7 +373,7 @@ FROM pedido p
 WHERE p.estado = 'ENTREGADO' AND p.id_pedido BETWEEN 1 AND 5
 ORDER BY p.id_pedido;
 
--- Equivalente a 4c: Buscar pedidos con producto_id = 1 (Hamburguesa Clásica)
+-- Equivalente a 4c: Buscar pedidos con producto_id = 1 (Producto Inicial)
 SELECT DISTINCT p.id_pedido, p.estado, dp.producto_id
 FROM pedido p
 JOIN detalle_pedido dp ON p.id_pedido = dp.pedido_id
@@ -400,18 +395,18 @@ ORDER BY p.id_pedido;</div>
     <tbody>
         <tr>
             <td><strong>Estado seleccionado (<code>'ENTREGADO'</code>)</strong></td>
-            <td class="text-center"><strong>3</strong></td>
-            <td class="text-center"><code>[1, 3, 4]</code></td>
-            <td class="text-center"><strong>3</strong></td>
-            <td class="text-center"><code>[1, 3, 4]</code></td>
+<td class="text-center"><strong>2</strong></td>
+<td class="text-center"><code>[1, 4]</code></td>
+<td class="text-center"><strong>2</strong></td>
+<td class="text-center"><code>[1, 4]</code></td>
             <td class="text-center"><span class="badge badge-success">&#10003; Sí</span></td>
         </tr>
         <tr>
             <td><strong>Producto seleccionado (<code>producto_id: 1</code>)</strong></td>
-            <td class="text-center"><strong>3</strong></td>
-            <td class="text-center"><code>[1, 3, 4]</code></td>
-            <td class="text-center"><strong>3</strong></td>
-            <td class="text-center"><code>[1, 3, 4]</code></td>
+<td class="text-center"><strong>2</strong></td>
+<td class="text-center"><code>[1, 2]</code></td>
+<td class="text-center"><strong>2</strong></td>
+<td class="text-center"><code>[1, 2]</code></td>
             <td class="text-center"><span class="badge badge-success">&#10003; Sí</span></td>
         </tr>
     </tbody>

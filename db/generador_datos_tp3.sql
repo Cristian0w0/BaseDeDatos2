@@ -171,8 +171,8 @@ BEGIN
                 'Estado incompatible: pedido contiene filas pero no el pedido inicial esperado.';
         END IF;
 
-        INSERT INTO pedido (cliente_id, forma_pago)
-        VALUES (v_cliente_id, 'EFECTIVO'::forma_pago)
+        INSERT INTO pedido (cliente_id, forma_pago, estado)
+        VALUES (v_cliente_id, 'EFECTIVO'::forma_pago, 'ENTREGADO'::estado_pedido)
         RETURNING id_pedido INTO v_pedido_id;
 
         INSERT INTO detalle_pedido (
@@ -312,11 +312,12 @@ productos_disponibles AS (
     FROM producto
 ),
 nuevos_pedidos AS (
-    INSERT INTO pedido (cliente_id, fecha_pedido, forma_pago)
+    INSERT INTO pedido (cliente_id, fecha_pedido, forma_pago, estado)
     SELECT
         c.id_cliente,
         now() - ((g.i % 365) || ' days')::INTERVAL - ((g.i % 86400) || ' seconds')::INTERVAL AS fecha_pedido,
-        (ARRAY['EFECTIVO'::forma_pago, 'TARJETA'::forma_pago, 'TRANSFERENCIA'::forma_pago])[(g.i % 3) + 1] AS forma_pago
+        (ARRAY['EFECTIVO'::forma_pago, 'TARJETA'::forma_pago, 'TRANSFERENCIA'::forma_pago])[(g.i % 3) + 1] AS forma_pago,
+        (ARRAY['ENTREGADO'::estado_pedido, 'CONFIRMADO'::estado_pedido, 'PENDIENTE'::estado_pedido])[(g.i % 3) + 1] AS estado
     FROM generate_series(1, 199999) AS g(i)
     JOIN clientes_disponibles c
         ON c.rn = ((g.i - 1) % c.total) + 1

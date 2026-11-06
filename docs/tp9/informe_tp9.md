@@ -20,7 +20,7 @@ En la base relacional PostgreSQL (`schema.sql`), este subconjunto involucra las 
 
 | Tabla | Clave Primaria (PK) | Claves Foráneas (FK) | Descripción y Atributos Clave |
 | :--- | :--- | :--- | :--- |
-| **`pedido`** | `id_pedido` (`BIGINT GENERATED ALWAYS AS IDENTITY`) | `cliente_id` $\rightarrow$ `cliente(id_cliente)` (`ON DELETE RESTRICT`) | Cabecera del pedido: almacena `fecha_pedido` (`TIMESTAMPTZ`), `forma_pago` (`ENUM: EFECTIVO, TARJETA, TRANSFERENCIA`). |
+| **`pedido`** | `id_pedido` (`BIGINT GENERATED ALWAYS AS IDENTITY`) | `cliente_id` $\rightarrow$ `cliente(id_cliente)` (`ON DELETE RESTRICT`) | Cabecera del pedido: almacena `fecha_pedido` (`TIMESTAMPTZ`), `forma_pago` (`ENUM: EFECTIVO, TARJETA, TRANSFERENCIA`) y `estado` (`ENUM: PENDIENTE, CONFIRMADO, ENTREGADO, CANCELADO`). |
 | **`detalle_pedido`** | `(pedido_id, producto_id)` (`PK compuesta`) | `pedido_id` $\rightarrow$ `pedido(id_pedido)`<br>`producto_id` $\rightarrow$ `producto(id_producto)` | Ítems de la orden: almacena `cantidad` (`CHECK > 0`) y `precio_unitario` (`NUMERIC(12,2) >= 0`, precio histórico pactado). |
 | **`cliente`** | `id_cliente` (`BIGINT GENERATED ALWAYS AS IDENTITY`) | Ninguna | Entidad compradora: `nombre`, `apellido`, `email` (`UNIQUE`). |
 | **`producto`** | `id_producto` (`BIGINT GENERATED ALWAYS AS IDENTITY`) | `categoria_id` $\rightarrow$ `categoria(id_categoria)` | Catálogo de productos: `nombre`, `precio` (precio actual de lista), `stock`, `activo`. |
@@ -55,30 +55,23 @@ En MongoDB se adopta un diseño **orientado a documentos desnormalizado** (*Aggr
 ```json
 {
   "_id": 1,
-  "fecha_pedido": ISODate("2026-10-15T19:30:00Z"),
+  "fecha_pedido": ISODate("2026-10-15T12:00:00Z"),
   "forma_pago": "EFECTIVO",
   "estado": "ENTREGADO",
-  "total": 6500.00,
+  "total": 100.00,
   "cliente": {
     "cliente_id": 1,
-    "nombre": "Carlos",
-    "apellido": "González",
-    "email": "carlos.gonzalez@example.com"
+    "nombre": "Cliente",
+    "apellido": "Inicial",
+    "email": "cliente.inicial@foodstore.local"
   },
   "lineas": [
     {
-      "producto_id": 10,
-      "nombre_producto": "Hamburguesa Doble Queso",
-      "cantidad": 2,
-      "precio_unitario": 2500.00,
-      "subtotal": 5000.00
-    },
-    {
-      "producto_id": 4,
-      "nombre_producto": "Gaseosa Cola 500ml",
+      "producto_id": 1,
+      "nombre_producto": "Producto Inicial",
       "cantidad": 1,
-      "precio_unitario": 1500.00,
-      "subtotal": 1500.00
+      "precio_unitario": 100.00,
+      "subtotal": 100.00
     }
   ]
 }
@@ -159,41 +152,40 @@ Se ejecutaron las cuatro consultas solicitadas sobre la colección `pedidos` en 
 #### Consulta 4a: Mostrar todos los pedidos, incluyendo su identificador y estado
 * **Instrucción**:
   ```javascript
-  db.pedidos.find({}, { _id: 1, estado: 1, total: 1 });
+  db.pedidos.find({}, { _id: 1, estado: 1, total: 1, "cliente.nombre": 1, "cliente.apellido": 1 }).sort({ _id: 1 });
   ```
 * **Salida obtenida**:
   ```json
   [
-    { "_id": 1, "estado": "ENTREGADO", "total": 6500 },
-    { "_id": 2, "estado": "PENDIENTE", "total": 3500 },
-    { "_id": 3, "estado": "ENTREGADO", "total": 11000 },
-    { "_id": 4, "estado": "ENTREGADO", "total": 16500 },
-    { "_id": 5, "estado": "CONFIRMADO", "total": 5500 }
+    { "_id": 1, "estado": "ENTREGADO", "total": 100, "cliente": { "nombre": "Cliente", "apellido": "Inicial" } },
+    { "_id": 2, "estado": "CONFIRMADO", "total": 200, "cliente": { "nombre": "Cliente", "apellido": "Inicial" } },
+    { "_id": 3, "estado": "PENDIENTE", "total": 175.5, "cliente": { "nombre": "María", "apellido": "Rodríguez" } },
+    { "_id": 4, "estado": "ENTREGADO", "total": 268, "cliente": { "nombre": "Carlos", "apellido": "Pérez" } },
+    { "_id": 5, "estado": "CONFIRMADO", "total": 377.5, "cliente": { "nombre": "Ana", "apellido": "González" } }
   ]
   ```
 
 #### Consulta 4b: Filtrar pedidos por un estado existente (`estado: 'ENTREGADO'`)
 * **Instrucción**:
   ```javascript
-  db.pedidos.find({ estado: "ENTREGADO" }, { _id: 1, estado: 1, total: 1 });
+  db.pedidos.find({ estado: "ENTREGADO" }, { _id: 1, estado: 1, total: 1 }).sort({ _id: 1 });
   ```
 * **Salida obtenida**:
   ```json
   [
-    { "_id": 1, "estado": "ENTREGADO", "total": 6500 },
-    { "_id": 3, "estado": "ENTREGADO", "total": 11000 },
-    { "_id": 4, "estado": "ENTREGADO", "total": 16500 }
+    { "_id": 1, "estado": "ENTREGADO", "total": 100 },
+    { "_id": 4, "estado": "ENTREGADO", "total": 268 }
   ]
   ```
-* **Total recuperado**: 3 pedidos (IDs 1, 3 y 4).
+* **Total recuperado**: 2 pedidos (IDs 1 y 4).
 
-#### Consulta 4c: Buscar pedidos que contengan un producto determinado (`producto_id: 1` - Hamburguesa Clásica)
+#### Consulta 4c: Buscar pedidos que contengan un producto determinado (`producto_id: 1` - Producto Inicial)
 * **Instrucción**:
   ```javascript
   db.pedidos.find(
     { "lineas.producto_id": NumberLong("1") },
     { _id: 1, estado: 1, "lineas.producto_id": 1, "lineas.nombre_producto": 1 }
-  );
+  ).sort({ _id: 1 });
   ```
 * **Salida obtenida**:
   ```json
@@ -202,57 +194,47 @@ Se ejecutaron las cuatro consultas solicitadas sobre la colección `pedidos` en 
       "_id": 1,
       "estado": "ENTREGADO",
       "lineas": [
-        { "producto_id": 1, "nombre_producto": "Hamburguesa Clásica" },
-        { "producto_id": 4, "nombre_producto": "Gaseosa Cola 500ml" }
+        { "producto_id": 1, "nombre_producto": "Producto Inicial" }
       ]
     },
     {
-      "_id": 3,
-      "estado": "ENTREGADO",
+      "_id": 2,
+      "estado": "CONFIRMADO",
       "lineas": [
-        { "producto_id": 1, "nombre_producto": "Hamburguesa Clásica" },
-        { "producto_id": 3, "nombre_producto": "Cerveza Artesanal IPA" }
-      ]
-    },
-    {
-      "_id": 4,
-      "estado": "ENTREGADO",
-      "lineas": [
-        { "producto_id": 5, "nombre_producto": "Pizza Especial Mozzarella" },
-        { "producto_id": 1, "nombre_producto": "Hamburguesa Clásica" }
+        { "producto_id": 1, "nombre_producto": "Producto Inicial" }
       ]
     }
   ]
   ```
-* **Total recuperado**: 3 pedidos (IDs 1, 3 y 4).
+* **Total recuperado**: 2 pedidos (IDs 1 y 2).
 
 #### Consulta 4d: Buscar pedidos cuyo total sea superior a un importe elegido
-* **Umbral seleccionado**: **\$10.000,00** (`total > 10000`).
+* **Umbral seleccionado**: **$200,00** (`total > 200.00`).
 * **Justificación técnica del umbral**:
-  En el modelo operativo de Food Store, los consumos promedio individuales oscilan entre \$3.500 y \$6.500 (plato individual más bebida). Establecer el umbral en \$10.000 segmenta de forma nítida las compras grupales o familiares (múltiples combos, pizzas enteras y bebidas combinadas) frente a los consumos menores, permitiendo al área de marketing y logística identificar los tickets de mayor impacto económico.
+  En el catálogo de bebidas y productos de Food Store, los pedidos individuales iniciales (pedidos 1 a 3) presentan subtotales de entre $100.00 y $200.00 (1 a 3 unidades vendidas). Establecer el umbral en $200.00 segmenta de forma precisa las órdenes de mayor volumen (pedidos 4 y 5 con 4 y 5 unidades respectivamente, alcanzando $268.00 y $377.50), permitiendo identificar y recuperar el 40% superior del lote migrado correspondiente a compras de consumo extendido o abastecimiento.
 * **Instrucción**:
   ```javascript
   db.pedidos.find(
-    { total: { $gt: 10000.00 } },
+    { total: { $gt: 200.00 } },
     { _id: 1, total: 1, "cliente.nombre": 1, "cliente.apellido": 1 }
-  );
+  ).sort({ _id: 1 });
   ```
 * **Salida obtenida**:
   ```json
   [
     {
-      "_id": 3,
-      "total": 11000,
-      "cliente": { "nombre": "Lucía", "apellido": "Fernández" }
+      "_id": 4,
+      "total": 268,
+      "cliente": { "nombre": "Carlos", "apellido": "Pérez" }
     },
     {
-      "_id": 4,
-      "total": 16500,
-      "cliente": { "nombre": "Carlos", "apellido": "González" }
+      "_id": 5,
+      "total": 377.5,
+      "cliente": { "nombre": "Ana", "apellido": "González" }
     }
   ]
   ```
-* **Total recuperado**: 2 pedidos (IDs 3 y 4).
+* **Total recuperado**: 2 pedidos (IDs 4 y 5).
 ---
 
 ### Consigna 5: Comparación y verificación con PostgreSQL
@@ -268,7 +250,7 @@ Se implementaron en el archivo [consultas_postgresql.sql](file:///d:/formateo%20
     AND p.id_pedido BETWEEN 1 AND 5
   ORDER BY p.id_pedido;
   ```
-* **Equivalente a 4c (Buscar pedidos con `producto_id = 1` - Hamburguesa Clásica)**:
+* **Equivalente a 4c (Buscar pedidos con `producto_id = 1` - Producto Inicial)**:
   ```sql
   SELECT DISTINCT p.id_pedido, p.estado, dp.producto_id
   FROM pedido p
@@ -282,8 +264,8 @@ Se implementaron en el archivo [consultas_postgresql.sql](file:///d:/formateo%20
 
 | Consulta | Cantidad en PostgreSQL | Identificadores en PostgreSQL | Cantidad en MongoDB | Identificadores en MongoDB | Coinciden los IDs |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Estado seleccionado (`'ENTREGADO'`)** | **3** | `[1, 3, 4]` | **3** | `[1, 3, 4]` | **Sí** |
-| **Producto seleccionado (`producto_id: 1`)** | **3** | `[1, 3, 4]` | **3** | `[1, 3, 4]` | **Sí** |
+| **Estado seleccionado (`'ENTREGADO'`)** | **2** | `[1, 4]` | **2** | `[1, 4]` | **Sí** |
+| **Producto seleccionado (`producto_id: 1`)** | **2** | `[1, 2]` | **2** | `[1, 2]` | **Sí** |
 
 #### 3. Análisis técnico de diferencias detectadas
 1. **Navegación de arreglos vs. Uniones relacionales (`JOIN` + `DISTINCT`)**:
