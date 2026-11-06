@@ -3,14 +3,12 @@
 -- Archivo: consultas_postgresql.sql
 -- Consigna 5: Consultas equivalentes en PostgreSQL para comparación con MongoDB
 -- ============================================================================
-
--- Asegurar columna 'estado' en la tabla pedido si la instancia base no la poseía
-ALTER TABLE pedido ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'ENTREGADO';
-
--- Actualizar estados de los pedidos de muestra para coincidir con el lote de MongoDB
-UPDATE pedido SET estado = 'ENTREGADO' WHERE id_pedido IN (1, 3, 4);
-UPDATE pedido SET estado = 'PENDIENTE' WHERE id_pedido = 2;
-UPDATE pedido SET estado = 'CONFIRMADO' WHERE id_pedido = 5;
+-- Nota de auditoría y verificación:
+-- Las siguientes consultas son de estricta lectura (SELECT) y se ejecutan sobre
+-- la base relacional canónica de Food Store poblada por la carga oficial.
+-- Contrastan el subconjunto testigo de los primeros 5 pedidos (id_pedido 1 a 5)
+-- migrados hacia la colección 'pedidos' de MongoDB.
+-- ============================================================================
 
 -- ----------------------------------------------------------------------------
 -- Consigna 5 (Equivalente a 4b): Filtrar pedidos por estado 'ENTREGADO'
@@ -27,7 +25,7 @@ ORDER BY p.id_pedido;
 
 -- ----------------------------------------------------------------------------
 -- Consigna 5 (Equivalente a 4c): Buscar pedidos que contengan un producto 
--- determinado (producto_id = 1 - Hamburguesa Clásica) en sus líneas
+-- determinado (producto_id = 1 - Producto Inicial) en sus líneas
 -- ----------------------------------------------------------------------------
 -- Opción A: Mediante JOIN y DISTINCT (para evitar duplicados por líneas múltiples)
 SELECT DISTINCT

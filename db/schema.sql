@@ -12,6 +12,13 @@ CREATE TYPE forma_pago AS ENUM (
     'TRANSFERENCIA'
 );
 
+CREATE TYPE estado_pedido AS ENUM (
+    'PENDIENTE',
+    'CONFIRMADO',
+    'ENTREGADO',
+    'CANCELADO'
+);
+
 -- ============================================================
 -- 2. Tablas principales
 -- ============================================================
@@ -63,6 +70,7 @@ CREATE TABLE pedido (
     cliente_id BIGINT NOT NULL,
     fecha_pedido TIMESTAMPTZ NOT NULL DEFAULT now(),
     forma_pago forma_pago NOT NULL,
+    estado estado_pedido NOT NULL DEFAULT 'ENTREGADO',
 
     CONSTRAINT fk_pedido_cliente
         FOREIGN KEY (cliente_id)
